@@ -1,0 +1,15 @@
+;; -*- no-byte-compile: t; -*-
+;;; ~/.doom.d/packages.el
+
+;;; Examples:
+;; (package! some-package)
+;; (package! another-package :recipe (:fetcher github :repo "username/repo"))
+;; (package! builtin-package :disable t)
+
+(package! org-super-agenda)
+(unpin! org-roam)
+(package! websocket)
+(package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
+
+;; Microsoft Exchange support
+(package! excorporate)
