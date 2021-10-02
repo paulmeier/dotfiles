@@ -7,7 +7,6 @@
 
 * Environment Variables
 #+begin_src bash
-export PAUL="wall2"
 export VIMINIT="source ~/.vim/vimrc"
 export PATH="$HOME/.emacs.d/bin:$PATH"
 export EDITOR="emacs -nw"
