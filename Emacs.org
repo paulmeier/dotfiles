@@ -1,0 +1,123 @@
+#+TITLE: Emacs
+#+PROPERTY: header-args:emacs-lisp :tangle .pmacs.d/init.el
+
+An emacs WIP to replace my doom setup one day. (mostly stolen from system crafters)
+
+* General Configuration
+
+** User Interface
+
+Make the interface minimal.
+
+#+begin_src emacs-lisp
+(setq inhibit-startup-message t)
+
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)       ; Give some breathing room
+
+(menu-bar-mode -1)            ; Disable the menu bar
+
+;; Set up the visible bell
+(setq visible-bell t)
+#+end_src
+
+** Font
+
+Set a custom font
+
++ Darwin
+  - Get the "Fira Mono" fonts on Darwin:
+#+begin_quote
+      brew install svn
+      brew tap homebrew/cask-fonts
+
+      brew install --cask \
+      font-fira-code \
+      font-fira-mono \
+      font-fira-mono-for-powerline \
+      font-fira-sans
+#+end_quote
+
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil :font "Fira Code Retina")
+#+end_src
+
+** Color Theme
+
+Set a custom color theme
+
+#+begin_src emacs-lisp
+(load-theme 'tango-dark t)
+#+end_src
+
+** Package Sources
+Enable package
+#+begin_src emacs-lisp
+(require 'package)
+#+end_src
+
+Set the package repositories
+#+begin_src emacs-lisp
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+#+end_src
+
+Initialize the package archives and install use-package
+#+begin_src emacs-lisp
+(package-initialize)
+(unless package-archive-contents
+  (package-install 'use-package))
+#+end_src
+
+Initialize use package on non-linux platforms.
+#+begin_src emacs-lisp
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+#+end_src
+
+Initialize use-package
+#+begin_src emacs-lisp
+(require 'use-package)
+(setq use-package-always-ensure t)
+#+end_src
+
+/Note:/ Be sure to run this command to refresh the package List
+#+begin_src bash
+M-x package-refresh-contents
+#+end_src
+
+** Global keys
+
+Make ESC quit prompts
+#+begin_src emacs-lisp
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+#+end_src
+
+* Completion
+
+** Ivy
+
+Ivy is an interactive interface for completion.
+
+#+begin_src emacs-lisp
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+#+end_src
