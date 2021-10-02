@@ -6,8 +6,19 @@ BLUE='\033[1;34m'
 RED='\033[1;30m'
 NC='\033[0m'
 
+# Get the running system
+SYSTEM="$(uname -s)"
+
+# Get directory based on what system is running
+if [ "$SYSTEM" = "Darwin" ]; then
+    SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+else
+    # assuming its linux
+    SCRIPT_DIR="$(dirname $(readlink -f $0))"
+fi
+
 # Navigate to the directory of this script (generally ~/.dotfiles/.bin)
-cd $(dirname $(readlink -f $0))
+cd "$SCRIPT_DIR"
 cd ..
 
 echo

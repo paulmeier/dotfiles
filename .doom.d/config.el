@@ -158,3 +158,18 @@
                                    :if-new (file+head+olp "%<%Y%m%d%H%M%S>-${slug}.org"
                                                           "#+title: ${title}\n#+category: ${title}\n#+filetags: Project"
                                                           ("Tasks"))))))
+
+;; Here is just an example that is a WIP
+;; a way to tangle all .org files contained in dotfiles
+;; at the moment it only does the single one
+;; (defun efs/org-babel-tangle-config ()
+;;   (when (seq-contains-p (file-expand-wildcards "~/.dotfiles/*.org")
+;;                         '(buffer-file-name))
+;;     (let ((org-confirm-babel-evaluate nil))
+;;       (org-babel-tangle))))
+(defun efs/org-babel-tangle-config ()
+  (when (string-equal (buffer-file-name)
+                      (expand-file-name "~/.dotfiles/Zsh.org"))
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
