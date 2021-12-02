@@ -1,0 +1,136 @@
+#+TITLE: Doom
+#+PROPERTY: header-args:emacs-lisp :tangle .doom.d/config.el
+
+A emacs DOOM configuration explained.
+
+* General
+** Emacs
++ Compilation auto-scroll
+#+begin_src emacs-lisp
+(setq compilation-scroll-output t)
+#+end_src
+
+** Key Bindings
++ Comment or uncomment a region
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+#+end_src
+
++ Export to HTML
+  #+begin_src emacs-lisp
+(map! :leader
+      (:prefix ("a" . "applications")
+      :desc "Export Org to HTML"
+      "e" #'org-html-export-as-html))
+
+
+  #+end_src
+
++ List all known org-roam projects
+  #+begin_src emacs-lisp
+(map! :leader
+      :desc "Find Roam Project"
+    "n r p" #'my/org-roam-find-project)
+  #+end_src
+
++ Quickly capturing notes to Roam Index. A place that can be reviewed and sorted at a later date.
+  #+begin_src emacs-lisp
+(map! :leader
+    :desc "Capture Roam Inbox"
+    "n r b" #'my/org-roam-capture-inbox)
+  #+end_src
+
++ Keybinding for capturing a specific project task
+  #+begin_src emacs-lisp
+(map! :leader
+    :desc "Capture Roam Project Task"
+    "n r t" #'my/org-roam-capture-task)
+  #+end_src
+
++ Toggle the Roam UI
+  #+begin_src emacs-lisp
+(map! :leader
+      :desc "Org Roam UI"
+      "n r u" #'org-roam-ui-mode)
+  #+end_src
+
+
+* Projectile
+
+Projectile project search paths
+#+begin_src emacs-lisp
+(setq projectile-project-search-path '("~/zProjects"))
+#+end_src
+
+* Dired
+
+#+begin_src emacs-lisp
+(setq dired-dwim-target t)
+#+end_src
+
+* Org-Roam
+** Dailies
++ configuration tells us where to keep journal entries
+   #+begin_src emacs-lisp
+   (setq org-roam-dailies-directory "journal/")
+   #+end_src
+
+** Package
++ configuration for the org roam directory. Define org roam capture templates.
+     #+begin_src emacs-lisp
+   (use-package! org-roam
+     :ensure t
+     :init
+     (setq org-roam-v2-ack t)
+     :custom
+     (org-roam-directory "~/pBrain")
+     (org-roam-completion-everywhere t)
+       (org-roam-capture-templates
+           '(("d" "default" plain "%?"
+                 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date:%U\n")
+                 :unarrowed t)
+                ("l" "programming language" plain
+                    "* Characteristics\n\n- Family: %?\n- Inspired by: \n\n* Reference:\n\n"
+                    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+                    :unnarrowed t)
+                ("b" "book notes" plain
+                    (file "~/pBrain/Templates/BookNoteTemplate.org")
+                    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+                    :unnarrowed t)
+                ("p" "project" plain
+                    (file "~/pBrain/Templates/ProjectTemplate.org")
+                    :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
+                    :unnarrowed t)
+                )
+           )
+       :config
+       (org-roam-setup))
+     #+end_src
+
+** Org-Roam-UI configuration
++ :after org normally we'd recommend hooking orui after org-roam, but since org-roam does not have a hookable mode anymore, you're advised to pick something yourself if you don't care about startup time, use :hook (after-init . org-roam-ui-mode)
+       #+begin_src emacs-lisp
+         (use-package! websocket
+             :after org-roam)
+
+         (use-package! org-roam-ui
+             :after org-roam
+             :config
+             (setq org-roam-ui-sync-theme t
+                 org-roam-ui-follow t
+                 org-roam-ui-update-on-save t
+                 org-roam-ui-open-on-start t))
+         #+end_src
+
+     + Functions to support filtering Roam notes by tags
+         #+begin_src emacs-lisp
+         (defun my/org-roam-filter-by-tag (tag-name)
+         (lambda (node)
+             (member tag-name (org-roam-node-tags node))))
+
+         (defun my/org-roam-list-notes-by-tag (tag-name)
+         (mapcar #'org-roam-node-file
+                 (seq-filter
+                 (my/org-roam-filter-by-tag tag-name)
+                 (org-roam-node-list))))
+       #+end_src
