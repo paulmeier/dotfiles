@@ -5,6 +5,18 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
+* Script Variables
+
+** System Architecture i.e (Darwin)
+#+begin_src bash
+SYSTEM="$(uname -s)"
+#+end_src
+
+** Hostname
+#+begin_src bash
+HOST="$(hostname)"
+#+end_src
+
 * Environment Variables
 #+begin_src bash
 export VIMINIT="source ~/.vim/vimrc"
@@ -169,4 +181,20 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 
 bindkey -v
+#+end_src
+
+* GenRocket
+#+begin_src bash
+if [ "$(hostname)" = "S292266.local" ]; then
+    export GEN_ROCKET_HOME=~/genrocket
+    export PATH=$PATH:$GEN_ROCKET_HOME/bin
+    export JAVA_OPTS="-Xms512m -Xmx2048m --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens jdk.zipfs/jdk.nio.zipfs=ALL-UNNAMED"
+fi
+#+end_src
+
+* Python
+#+begin_src bash
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+fi
 #+end_src

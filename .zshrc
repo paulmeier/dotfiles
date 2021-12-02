@@ -1,3 +1,7 @@
+SYSTEM="$(uname -s)"
+
+HOST="$(hostname)"
+
 export VIMINIT="source ~/.vim/vimrc"
 export PATH="$HOME/.emacs.d/bin:$PATH"
 export EDITOR="emacs -nw"
@@ -34,3 +38,13 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 
 bindkey -v
+
+if [ "$(hostname)" = "S292266.local" ]; then
+    export GEN_ROCKET_HOME=~/genrocket
+    export PATH=$PATH:$GEN_ROCKET_HOME/bin
+    export JAVA_OPTS="-Xms512m -Xmx2048m --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens jdk.zipfs/jdk.nio.zipfs=ALL-UNNAMED"
+fi
+
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+fi
