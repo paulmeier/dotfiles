@@ -173,3 +173,8 @@
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+
+(after! circe
+  (set-irc-server! "localhost"
+    `(:port 6667
+      :nick "robop")))
