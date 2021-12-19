@@ -47,7 +47,13 @@
 
 (setq dired-dwim-target t)
 
+;; Set Org notes directory
+(setq org-directory "~/Amazon Drive/pOrg")
+
+;; Org roam dailies (remove this)
 (setq org-roam-dailies-directory "journal/")
+
+;; Roam config
 (use-package! org-roam
   :ensure t
   :init
