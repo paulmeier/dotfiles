@@ -53,7 +53,7 @@
   :init
   (setq org-roam-v2-ack t)
   :custom
-  (org-roam-directory "~/pBrain")
+  (org-roam-directory "~/Amazon Drive/pBrain")
   (org-roam-completion-everywhere t)
     (org-roam-capture-templates
         '(("d" "default" plain "%?"
@@ -64,11 +64,11 @@
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("b" "book notes" plain
-                 (file "~/pBrain/Templates/BookNoteTemplate.org")
+                 (file "~/Amazon Drive/pBrain/Templates/BookNoteTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("p" "project" plain
-                 (file "~/pBrain/Templates/ProjectTemplate.org")
+                 (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
                  :unnarrowed t)
              )
@@ -135,7 +135,7 @@
    (my/org-roam-filter-by-tag "Project")
       :templates
       '(("p" "project" plain
-                    (file "~/pBrain/Templates/ProjectTemplate.org")
+                    (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
 
