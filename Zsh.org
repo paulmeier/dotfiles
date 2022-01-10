@@ -22,46 +22,13 @@ export PATH="$PATH:$HOME/.dotfiles/.bin"
 export PATH="$HOME/.emacs.d/bin:$PATH"
 #+end_src
 
-** Golang
-#+begin_src bash
-#export GOPATH=$HOME/go
-#export GOBIN=$HOME/go/bin
-#export PATH="$PATH:$GOBIN"
-#export GO111MODULE=on
-#+end_src
-
-** Node Version Manager
-#+begin_src bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-#+end_src
-
-** FZF
-# For FZF to use ripgrep
-#+begin_src bash
-export FZF_DEFAULT_COMMAND="rg --files --hidden --follow --glob '!.git'"
-[ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
-#export FZF_DEFAULT_OPS="--extended"
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init -)"
-fi
-
-bindkey -v
-#+end_src
-
 ** Python
 #+begin_src bash
 if command -v pyenv 1>/dev/null 2>&1; then
   eval "$(pyenv init -)"
+  alias pip=/usr/local/bin/pip3
 fi
-
-alias pip=/usr/local/bin/pip3
 #+end_src
-
-# For apollo graphql rover tool
-# export PATH="/Users/mei0860/.rover/bin:$PATH"
 
 * Aliases
 #+begin_src bash
