@@ -1,28 +1,38 @@
 #+TITLE: Zsh
 #+PROPERTY: header-args:bash :tangle ~/.zshrc
 
-* Configuration
-** Shell
+* Shell
+Give the shell my likes/dislikes (I hope we are a good match)
 #+begin_src bash
 export EDITOR="emacs -nw"
 #+end_src
 
-** VIM
+* VIM
+I do not hate vim
+
+** Specify where to find .vimrc
 #+begin_src bash
 export VIMINIT="source ~/.vim/vimrc"
 #+end_src
 
-** Scripts
+* Dotfiles
+Dotfiles is a folder made up of org files intended to be bable-tangled into configurations then GNU Stow symbolically links those files
+to the same directory structure as specified in the dotfiles folder
+
+** Add the dotfiles scripts to path so I can directly execute them from the shell
 #+begin_src bash
 export PATH="$PATH:$HOME/.dotfiles/.bin"
 #+end_src
 
-** DOOM commands
+* DOOM
+Doom emacs is my homie
+
+** Doom Scripts location
 #+begin_src bash
 export PATH="$HOME/.emacs.d/bin:$PATH"
 #+end_src
 
-** Python
+* Python
 #+begin_src bash
 if command -v pyenv 1>/dev/null 2>&1; then
   eval "$(pyenv init -)"
@@ -30,8 +40,18 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 #+end_src
 
-* Aliases
+* pmacs
+This is for a custom emacs build from scratch I'm working on
+
+** Alias the command to load it
 #+begin_src bash
 alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
 #+end_src
 
+* Starship
+A command prompt to go boldly where no man has gone before
+
+** Tell starship we are using zsh
+#+begin_src bash
+eval "$(starship init zsh)"
+#+end_src

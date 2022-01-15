@@ -1,1 +1,24 @@
 # dotfiles
+
+
+First look at org notes on a tool for specific installation steps.
+
+## Prerequisites
+- Install GNU stow
+
+* Generate configuration
+To generate tool/application configuration simply open the corresponding .org file inside emacs run:
+
+#+begin_src markdown
+
+`org-bable-tangle` (C-c C-v t)
+
+#+end_src
+
+* Link the configuration file
+
+#+begin_src bash
+
+stow .
+
+#+end_src

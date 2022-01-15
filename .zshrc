@@ -12,3 +12,5 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 
 alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
+
+eval "$(starship init zsh)"
