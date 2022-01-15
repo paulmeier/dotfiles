@@ -3,8 +3,13 @@
 
 First look at org notes on a tool for specific installation steps.
 
-## Prerequisites
-- Install GNU stow
+* Prerequisites
+** Install GNU stow
+#+begin_src bash
+
+brew install stow
+
+#+end_src
 
 * Generate configuration
 To generate tool/application configuration simply open the corresponding .org file inside emacs run:
