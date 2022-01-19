@@ -52,7 +52,7 @@ export PATH
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 #+begin_src bash
-ZSH_THEME="spaceship"
+#ZSH_THEME="spaceship"
 #+end_src
 
 # Set list of themes to pick from when loading at random
@@ -199,4 +199,14 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 
 alias pip=/usr/local/bin/pip3
+#+end_src
+
+* Starship
+A command prompt to go boldly where no man has gone before
+
+** Tell starship we are using zsh
+#+begin_src bash
+
+eval "$(starship init zsh)"
+
 #+end_src
