@@ -41,11 +41,12 @@ export PATH="$HOME/.emacs.d/bin:$PATH"
 #+end_src
 
 * Python
+If pyenv is available make initialize it
 #+begin_src bash
 
 if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init -)"
-  alias pip=/usr/local/bin/pip3
+  eval "$(pyenv init --path)"
+  eval "$(pyenv virtualenv-init -)"
 fi
 
 #+end_src
@@ -53,7 +54,7 @@ fi
 * pmacs
 This is for a custom emacs build from scratch I'm working on
 
-** Alias the command to load it
+Alias the command to load it
 #+begin_src bash
 
 alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
@@ -63,7 +64,7 @@ alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
 * Starship
 A command prompt to go boldly where no man has gone before
 
-** Tell starship we are using zsh
+Tell Starship we are using zsh
 #+begin_src bash
 
 eval "$(starship init zsh)"
@@ -72,10 +73,30 @@ eval "$(starship init zsh)"
 
 * NVM
 Node version manager
+
+The following code will perform lazy-loading for NVM and only run when invoked
+(http://broken-by.me/lazy-load-nvm/)
 #+begin_src bash
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+nvm() {
+    unset -f nvm
+    export NVM_DIR=~/.nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+    nvm "$@"
+}
+
+node() {
+    unset -f node
+    export NVM_DIR=~/.nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+    node "$@"
+}
+
+npm() {
+    unset -f npm
+    export NVM_DIR=~/.nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+    npm "$@"
+}
 
 #+end_src

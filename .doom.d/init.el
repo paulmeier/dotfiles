@@ -131,6 +131,7 @@
         +habit           ; Keep track of your habits
         +present         ; Emacs for presentations
         +protocol
+        +jupyter
         +roam2)       ; Support for org-protocol:// links
        ;;perl              ; write code no one else can comprehend
        ;;php               ; perl's insecure younger brother
@@ -138,6 +139,7 @@
        ;;purescript        ; javascript, but functional
        (python
         +lsp
+        +pyright
         +pyenv)       ; beautiful is better than ugly
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
