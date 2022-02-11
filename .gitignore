@@ -43,11 +43,7 @@ flycheck_*.el
 /server/
 
 # projectiles files
-.projectile
+.projectil 
 
 # directory configuration
 .dir-locals.el
-
-# Ignore tangled configs relying on different systems
-# these should be created after clone
-.zshrc

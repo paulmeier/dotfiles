@@ -1,5 +1,5 @@
 #+TITLE: Zsh
-#+PROPERTY: header-args:bash :tangle ~/.zshrc
+#+PROPERTY: header-args:bash :tangle .zshrc
 
 * Shell
 Give the shell my likes/dislikes (I hope we are a good match)
