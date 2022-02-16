@@ -32,8 +32,6 @@
 (setq org-directory "~/Amazon Drive/pOrg")
 (setq org-use-property-inheritance t)
 
-(setq org-roam-dailies-directory "journal/")
-
 (use-package! org-roam
   :ensure t
   :init
@@ -131,7 +129,6 @@
   (interactive)
   (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
 
-  ;; TEST COMMENT
   (org-roam-node-find
    nil
    nil
@@ -141,11 +138,3 @@
                     (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
-
-(use-package jupyter
-  :ensure t
-  :defer t
-  :init
-  (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
-                                                       (:session . "py")
-                                                       (:kernel . "python3"))))

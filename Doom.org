@@ -87,7 +87,8 @@ A emacs DOOM configuration explained.
 * Org-Roam
 ** Dailies
 *** configuration tells us where to keep journal entries within the roam location
-#+begin_src emacs-lisp
+/note/ currently not wanting to use roam for dailies but use org notes instead
+#+begin_src emacs-lisp :tangle no
 (setq org-roam-dailies-directory "journal/")
 #+end_src
 
@@ -243,7 +244,6 @@ A emacs DOOM configuration explained.
   (interactive)
   (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
 
-  ;; TEST COMMENT
   (org-roam-node-find
    nil
    nil
