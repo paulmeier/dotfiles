@@ -6,94 +6,144 @@ A emacs DOOM configuration explained.
 * General
 ** Emacs
 *** Start full screen
+
 #+begin_src emacs-lisp
+
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 #+end_src
 
 *** Compilation auto-scroll
+
 #+begin_src emacs-lisp
+
 (setq compilation-scroll-output t)
+
 #+end_src
 
 ** Key Bindings
 *** Comment or un-comment a region
+
 #+begin_src emacs-lisp
+
 (global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+
 #+end_src
 
 *** Export to HTML
+
 #+begin_src emacs-lisp
+
 (map! :leader
       (:prefix ("a" . "applications")
       :desc "Export Org to HTML"
       "e" #'org-html-export-as-html))
+
 #+end_src
 
 *** List all known org-roam projects
+
 #+begin_src emacs-lisp
+
 (map! :leader
       :desc "Find Roam Project"
     "n r p" #'my/org-roam-find-project)
+
 #+end_src
 
 *** Quickly capturing notes to Roam Index. A place that can be reviewed and sorted at a later date.
+
 #+begin_src emacs-lisp
+
 (map! :leader
     :desc "Capture Roam Inbox"
     "n r b" #'my/org-roam-capture-inbox)
+
 #+end_src
 
 *** Keybinding for capturing a specific project task
+
 #+begin_src emacs-lisp
+
 (map! :leader
     :desc "Capture Roam Project Task"
     "n r t" #'my/org-roam-capture-task)
+
 #+end_src
 
 *** Toggle the Roam UI
+
 #+begin_src emacs-lisp
+
 (map! :leader
       :desc "Org Roam UI"
       "n r u" #'org-roam-ui-mode)
+
 #+end_src
 
 * Projectile
 
 ** Projectile project search paths
+
 #+begin_src emacs-lisp
+
 (setq projectile-project-search-path '("~/zProjects"))
+
 #+end_src
 
 * Dir-ed
+
 #+begin_src emacs-lisp
+
 (setq dired-dwim-target t)
+
 #+end_src
 
 * Circe (testing)
+
 #+begin_src emacs-lisp :tangle no
+
 (after! circe
   (set-irc-server! "localhost"
     `(:port 6667
       :nick "robop")))
+
 #+end_src
 
 * Org
 ** Org files location
+
 #+begin_src emacs-lisp
+
 (setq org-directory "~/Amazon Drive/pOrg")
 (setq org-use-property-inheritance t)
+
+#+end_src
+
+* Org-Agenda
+** Set org agenda files
+
+#+begin_src emacs-lisp
+
+(setq org-agenda-files '("~/Amazon Drive/pOrg"))
+
 #+end_src
 
 * Org-Roam
 ** Dailies
 *** configuration tells us where to keep journal entries within the roam location
+
 #+begin_src emacs-lisp
+
 (setq org-roam-dailies-directory "journal/")
+
 #+end_src
 
 ** Package
 *** configuration for the org roam directory. Define org roam capture templates.
+
 #+begin_src emacs-lisp
+
 (use-package! org-roam
   :ensure t
   :init
@@ -121,12 +171,15 @@ A emacs DOOM configuration explained.
         )
     :config
     (org-roam-setup))
+
 #+end_src
 
 ** Org-Roam-UI
 *** Configuration
 + after org normally we'd recommend hooking orui after org-roam, but since org-roam does not have a hookable mode anymore, you're advised to pick something yourself if you don't care about startup time, use :hook (after-init . org-roam-ui-mode)
+
 #+begin_src emacs-lisp
+
 (use-package! websocket
     :after org-roam)
 
@@ -137,10 +190,13 @@ A emacs DOOM configuration explained.
         org-roam-ui-follow t
         org-roam-ui-update-on-save t
         org-roam-ui-open-on-start t))
+
 #+end_src
 
 *** Functions to support filtering Roam notes by tags
+
 #+begin_src emacs-lisp
+
 (defun my/org-roam-filter-by-tag (tag-name)
 (lambda (node)
     (member tag-name (org-roam-node-tags node))))
@@ -150,6 +206,7 @@ A emacs DOOM configuration explained.
         (seq-filter
         (my/org-roam-filter-by-tag tag-name)
         (org-roam-node-list))))
+
 #+end_src
 
 * Other
@@ -159,6 +216,7 @@ A emacs DOOM configuration explained.
 
 ** Auto-Tangle-dotfiles on save
 *** All org files (WIP)
+
 #+begin_src emacs-lisp :tangle no
 ;; Here is just an example that is a broken WIP
 ;; a way to tangle all .org files contained in dotfiles
@@ -170,23 +228,29 @@ A emacs DOOM configuration explained.
 #+end_src
 
 *** Auto tangle Zsh to .zshrc
+
 #+begin_src emacs-lisp
+
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
                       (expand-file-name "~/.dotfiles/Zsh.org"))
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+
 #+end_src
 
 *** Auto tangle Doom config.el
+
 #+begin_src emacs-lisp
+
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
                       (expand-file-name "~/.dotfiles/Doom.org"))
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+
 #+end_src
 
 ** Org Roam
@@ -195,7 +259,9 @@ A emacs DOOM configuration explained.
 + Remove the hook since it was added temporarily
 + Adds the captured project file to `org-agenda-files' if the capture was not aborted.
 + Add project file to the agenda list if the capture was confirmed
+
 #+begin_src emacs-lisp
+
 (defun my/org-roam-refresh-agenda-list ()
   (interactive)
   (setq org-agenda-files (my/org-roam-list-notes-by-tag "Project")))
@@ -207,12 +273,15 @@ A emacs DOOM configuration explained.
   (unless org-note-abort
     (with-current-buffer (org-capture-get :buffer)
       (add-to-list 'org-agenda-files (buffer-file-name)))))
+
 #+end_src
 
 *** Capture task
 + Add the project file to the agenda after capture is finished
 + Capture the new task, creating the project file if necessary
+
 #+begin_src emacs-lisp
+
 (defun my/org-roam-capture-task ()
   (interactive)
   (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
@@ -224,26 +293,30 @@ A emacs DOOM configuration explained.
                                    :if-new (file+head+olp "%<%Y%m%d%H%M%S>-${slug}.org"
                                                           "#+title: ${title}\n#+category: ${title}\n#+filetags: Project"
                                                           ("Tasks"))))))
+
 #+end_src
 
 *** Capture quick notes to Inbox
 #+begin_src emacs-lisp
+
 (defun my/org-roam-capture-inbox ()
   (interactive)
   (org-roam-capture- :node (org-roam-node-create)
                      :templates '(("i" "inbox" plain "* %?"
                                   :if-new (file+head "Inbox.org" "#+title: Inbox\n")))))
+
 #+end_src
 
 *** Find project
 + Add the project file to the agenda after capture is finished
 + Select a project file to open, creating it if necessary
+
 #+begin_src emacs-lisp
+
 (defun my/org-roam-find-project ()
   (interactive)
   (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
 
-  ;; TEST COMMENT
   (org-roam-node-find
    nil
    nil
@@ -253,4 +326,18 @@ A emacs DOOM configuration explained.
                     (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
+
+#+end_src
+
+*** Jupyter notebooks support
+#+begin_src emacs-lisp
+
+(use-package jupyter
+  :ensure t
+  :defer t
+  :init
+  (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
+                                                       (:session . "py")
+                                                       (:kernel . "python3"))))
+
 #+end_src

@@ -32,6 +32,8 @@
 (setq org-directory "~/Amazon Drive/pOrg")
 (setq org-use-property-inheritance t)
 
+(setq org-agenda-files '("~/Amazon Drive/pOrg"))
+
 (setq org-roam-dailies-directory "journal/")
 
 (use-package! org-roam
@@ -131,7 +133,6 @@
   (interactive)
   (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
 
-  ;; TEST COMMENT
   (org-roam-node-find
    nil
    nil
