@@ -115,8 +115,27 @@ A emacs DOOM configuration explained.
 
 #+begin_src emacs-lisp
 
-(setq org-directory "~/Amazon Drive/pOrg")
+(setq org-directory "~/Documents/pOrg")
 (setq org-use-property-inheritance t)
+
+#+end_src
+
+** Org package
+
+#+begin_src emacs-lisp
+
+(defun my/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
+  (setq evil-auto-indent nil))
+
+(use-package! org
+  :hook (org-mode . my/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾"
+        org-hide-emphasis-markers t))
 
 #+end_src
 
@@ -125,7 +144,7 @@ A emacs DOOM configuration explained.
 
 #+begin_src emacs-lisp
 
-(setq org-agenda-files '("~/Amazon Drive/pOrg"))
+(setq org-agenda-files '("~/Documents/pOrg"))
 
 #+end_src
 
@@ -135,7 +154,7 @@ A emacs DOOM configuration explained.
 
 #+begin_src emacs-lisp
 
-(setq org-roam-dailies-directory "journal/")
+(setq org-roam-dailies-directory "Journal/")
 
 #+end_src
 
@@ -149,7 +168,7 @@ A emacs DOOM configuration explained.
   :init
   (setq org-roam-v2-ack t)
   :custom
-  (org-roam-directory "~/Amazon Drive/pBrain")
+  (org-roam-directory "~/Documents/pBrain")
   (org-roam-completion-everywhere t)
     (org-roam-capture-templates
         '(("d" "default" plain "%?"
@@ -160,11 +179,11 @@ A emacs DOOM configuration explained.
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("b" "book notes" plain
-                 (file "~/Amazon Drive/pBrain/Templates/BookNoteTemplate.org")
+                 (file "~/Documents/pBrain/Templates/BookNoteTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("p" "project" plain
-                 (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
+                 (file "~/Documents/pBrain/Templates/ProjectTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
                  :unnarrowed t)
              )
@@ -209,8 +228,14 @@ A emacs DOOM configuration explained.
 
 #+end_src
 
-* Other
+** Org Roam Bibtex support
+#+begin_src emacs-lisp
 
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config)
+
+#+end_src
 
 * Functions
 
@@ -323,7 +348,7 @@ A emacs DOOM configuration explained.
    (my/org-roam-filter-by-tag "Project")
       :templates
       '(("p" "project" plain
-                    (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
+                    (file "~/Documents/pBrain/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
 
@@ -341,3 +366,4 @@ A emacs DOOM configuration explained.
                                                        (:kernel . "python3"))))
 
 #+end_src
+

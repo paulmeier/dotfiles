@@ -32,6 +32,19 @@
 (setq org-directory "~/Amazon Drive/pOrg")
 (setq org-use-property-inheritance t)
 
+(defun my/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1)
+  (setq evil-auto-indent nil))
+
+(use-package! org
+  :hook (org-mode . my/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾"
+        org-hide-emphasis-markers t))
+
 (setq org-agenda-files '("~/Amazon Drive/pOrg"))
 
 (setq org-roam-dailies-directory "journal/")
@@ -52,11 +65,11 @@
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("b" "book notes" plain
-                 (file "~/Amazon Drive/pBrain/Templates/BookNoteTemplate.org")
+                 (file "~/Documents/pBrain/Templates/BookNoteTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("p" "project" plain
-                 (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
+                 (file "~/Documents/pBrain/Templates/ProjectTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
                  :unnarrowed t)
              )
@@ -84,6 +97,10 @@
         (seq-filter
         (my/org-roam-filter-by-tag tag-name)
         (org-roam-node-list))))
+
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config)
 
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
@@ -139,7 +156,7 @@
    (my/org-roam-filter-by-tag "Project")
       :templates
       '(("p" "project" plain
-                    (file "~/Amazon Drive/pBrain/Templates/ProjectTemplate.org")
+                    (file "~/Documents/pBrain/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
 

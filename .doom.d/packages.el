@@ -6,10 +6,14 @@
 ;; (package! another-package :recipe (:fetcher github :repo "username/repo"))
 ;; (package! builtin-package :disable t)
 
+(package! org-ref)
 (package! org-super-agenda)
-(unpin! org-roam)
 (package! websocket)
-(package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
+(package! org-roam-ui
+  :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 
+(unpin! org-roam)
 ;; Microsoft Exchange support
-(package! excorporate)
+;;(package! excorporate)

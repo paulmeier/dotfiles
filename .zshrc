@@ -1,14 +1,17 @@
 export EDITOR="emacs -nw"
+
 export VIMINIT="source ~/.vim/vimrc"
+
 export PATH="$PATH:$HOME/.dotfiles/.bin"
+
 export PATH="$HOME/.emacs.d/bin:$PATH"
 
-alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
+#if command -v pyenv 1>/dev/null 2>&1; then
+#  eval "$(pyenv init --path)"
+#  eval "$(pyenv virtualenv-init -)"
+#fi
 
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init --path)"
-  eval "$(pyenv virtualenv-init -)"
-fi
+alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
 
 eval "$(starship init zsh)"
 
