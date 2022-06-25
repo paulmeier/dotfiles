@@ -1,21 +1,20 @@
 #+TITLE: Zsh
 #+PROPERTY: header-args:bash :tangle .zshrc
 
+* History
+#+begin_src bash
+
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
+
+#+end_src
+
 * Shell
 Give the shell my likes/dislikes (I hope we are a good match)
 #+begin_src bash
 
 export EDITOR="emacs -nw"
-
-#+end_src
-
-* VIM
-I do not hate vim
-
-** Specify where to find .vimrc
-#+begin_src bash
-
-export VIMINIT="source ~/.vim/vimrc"
 
 #+end_src
 
@@ -36,7 +35,7 @@ Doom emacs is my homie
 ** Doom Scripts location
 #+begin_src bash
 
-export PATH="$HOME/.emacs.d/bin:$PATH"
+export PATH="$HOME/.emacs-configs/emacs-doom/bin:$PATH"
 
 #+end_src
 
@@ -48,26 +47,6 @@ if command -v pyenv 1>/dev/null 2>&1; then
   eval "$(pyenv init --path)"
   eval "$(pyenv virtualenv-init -)"
 fi
-
-#+end_src
-
-* pmacs
-This is for a custom emacs build from scratch I'm working on
-
-Alias the command to load it
-#+begin_src bash
-
-alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
-
-#+end_src
-
-* Starship
-A command prompt to go boldly where no man has gone before
-
-Tell Starship we are using zsh
-#+begin_src bash
-
-eval "$(starship init zsh)"
 
 #+end_src
 

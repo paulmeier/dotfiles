@@ -189,3 +189,8 @@
        ;; provides a Spacemacs-inspired keybinding scheme and a smartparens
        ;; config. Use it as a reference for your own modules.
        (default +bindings +smartparens))
+
+;; Custom Items
+
+;; Display Battery
+(display-battery-mode 1)

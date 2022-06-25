@@ -1,19 +1,17 @@
-export EDITOR="emacs -nw"
+HISTFILE=~/.histfile
+HISTSIZE=1000
+SAVEHIST=1000
 
-export VIMINIT="source ~/.vim/vimrc"
+export EDITOR="emacs -nw"
 
 export PATH="$PATH:$HOME/.dotfiles/.bin"
 
-export PATH="$HOME/.emacs.d/bin:$PATH"
+export PATH="$HOME/.emacs-configs/emacs-doom/bin:$PATH"
 
-#if command -v pyenv 1>/dev/null 2>&1; then
-#  eval "$(pyenv init --path)"
-#  eval "$(pyenv virtualenv-init -)"
-#fi
-
-alias pmacs='emacs -q --load "~/.pmacs.d/init.el"'
-
-eval "$(starship init zsh)"
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init --path)"
+  eval "$(pyenv virtualenv-init -)"
+fi
 
 nvm() {
     unset -f nvm

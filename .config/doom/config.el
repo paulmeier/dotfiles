@@ -25,11 +25,11 @@
       :desc "Org Roam UI"
       "n r u" #'org-roam-ui-mode)
 
-(setq projectile-project-search-path '("~/zProjects"))
+(setq projectile-project-search-path '("~/Projects"))
 
 (setq dired-dwim-target t)
 
-(setq org-directory "~/Amazon Drive/pOrg")
+(setq org-directory "~/Org")
 (setq org-use-property-inheritance t)
 
 (defun my/org-mode-setup ()
@@ -45,7 +45,7 @@
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t))
 
-(setq org-agenda-files '("~/Amazon Drive/pOrg"))
+(setq org-agenda-files '("~/Org"))
 
 (setq org-roam-dailies-directory "journal/")
 
@@ -54,7 +54,7 @@
   :init
   (setq org-roam-v2-ack t)
   :custom
-  (org-roam-directory "~/Amazon Drive/pBrain")
+  (org-roam-directory "~/pBrain")
   (org-roam-completion-everywhere t)
     (org-roam-capture-templates
         '(("d" "default" plain "%?"
@@ -65,11 +65,11 @@
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("b" "book notes" plain
-                 (file "~/Documents/pBrain/Templates/BookNoteTemplate.org")
+                 (file "~/pBrain/Templates/BookNoteTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("p" "project" plain
-                 (file "~/Documents/pBrain/Templates/ProjectTemplate.org")
+                 (file "~/pBrain/Templates/ProjectTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
                  :unnarrowed t)
              )
@@ -156,7 +156,7 @@
    (my/org-roam-filter-by-tag "Project")
       :templates
       '(("p" "project" plain
-                    (file "~/Documents/pBrain/Templates/ProjectTemplate.org")
+                    (file "~/pBrain/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
 
@@ -167,3 +167,41 @@
   (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                        (:session . "py")
                                                        (:kernel . "python3"))))
+
+(defun copy-to-clipboard ()
+  "Copies selection to x-clipboard"
+  (interactive)
+  (if (display-graphic-p)
+      (progn
+        (message "Yanked region to x-clipboard")
+        (call-interactively 'clipboard-kill-ring-save)
+        )
+    (if (region-active-p)
+        (progn
+          (shell-command-on-region (region-beginning) (region-end) "xsel -i -b")
+          (message "Yanked region to clipboard")
+          (deactivate-mark))
+      (message "No region active; can't yank to clipboard!")))
+  )
+
+(defun paste-from-clipboard ()
+  "Pastes from x-clipboard"
+  (interactive)
+  (if (display-graphic-p)
+      (progn
+        (clipboard-yank)
+        (message "graphics active")
+        )
+    (insert (shell-command-to-string "xsel -o -b"))
+    )
+  )
+
+(map! :leader
+      :desc "copy-to-clipboard"
+      "o y" #'copy-to-clipboard)
+
+(map! :leader
+      :desc "paste-from-clipboard"
+      "o p" #'paste-from-clipboard)
+
+
