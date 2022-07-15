@@ -1,7 +1,7 @@
 #+TITLE: Doom
 #+PROPERTY: header-args:emacs-lisp :tangle .config/doom/config.el
 
-My emacs DOOM configuration explained.
+My emacs DOOM configuration explained. Each section should explain why it exists.
 
 * General
 ** Emacs
