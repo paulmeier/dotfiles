@@ -50,3 +50,6 @@ flycheck_*.el
 
 # should not include zsh directly as it is generated from org-babel
 .zshrc
+
+# ignore doom emacs install
+.emacs-configs/emacs-doom
