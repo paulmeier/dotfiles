@@ -6,3 +6,4 @@ README.md
 .gitignore
 .DS_Store
 .vscode
+.emacs-configs/doom-emacs

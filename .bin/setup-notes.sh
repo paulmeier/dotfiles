@@ -5,6 +5,7 @@
 # watchman
 # zsh
 # emacs
+# git-sync
 
 # First dotfiles setup
 cd ~
