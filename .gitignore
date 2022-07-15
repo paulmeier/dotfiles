@@ -47,3 +47,6 @@ flycheck_*.el
 
 # directory configuration
 .dir-locals.el
+
+# should not include zsh directly as it is generated from org-babel
+.zshrc
