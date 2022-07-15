@@ -1,7 +1,7 @@
 #+TITLE: Doom
-#+PROPERTY: header-args:emacs-lisp :tangle .doom.d/config.el
+#+PROPERTY: header-args:emacs-lisp :tangle .config/doom/config.el
 
-A emacs DOOM configuration explained.
+My emacs DOOM configuration explained.
 
 * General
 ** Emacs
@@ -168,7 +168,7 @@ A emacs DOOM configuration explained.
   :init
   (setq org-roam-v2-ack t)
   :custom
-  (org-roam-directory "~/pBrain")
+  (org-roam-directory "~/Org-Roam")
   (org-roam-completion-everywhere t)
     (org-roam-capture-templates
         '(("d" "default" plain "%?"
@@ -179,11 +179,11 @@ A emacs DOOM configuration explained.
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("b" "book notes" plain
-                 (file "~/pBrain/Templates/BookNoteTemplate.org")
+                 (file "~/Org/Templates/BookNoteTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("p" "project" plain
-                 (file "~/pBrain/Templates/ProjectTemplate.org")
+                 (file "~/Org/Templates/ProjectTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
                  :unnarrowed t)
              )
@@ -238,19 +238,6 @@ A emacs DOOM configuration explained.
 #+end_src
 
 * Functions
-
-** Auto-Tangle-dotfiles on save
-*** All org files (WIP)
-
-#+begin_src emacs-lisp :tangle no
-;; Here is just an example that is a broken WIP
-;; a way to tangle all .org files contained in dotfiles
-;;(defun efs/org-babel-tangle-config ()
-;;   (when (seq-contains-p (file-expand-wildcards "~/.dotfiles/*.org")
-;;                         '(buffer-file-name))
-;;     (let ((org-confirm-babel-evaluate nil))
-;;       (org-babel-tangle))))
-#+end_src
 
 *** Auto tangle Zsh to .zshrc
 
@@ -348,7 +335,7 @@ A emacs DOOM configuration explained.
    (my/org-roam-filter-by-tag "Project")
       :templates
       '(("p" "project" plain
-                    (file "~/pBrain/Templates/ProjectTemplate.org")
+                    (file "~/Org-Roam/Templates/ProjectTemplate.org")
                     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n")
                     :unnarrowed t))))
 

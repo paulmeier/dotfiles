@@ -65,11 +65,11 @@
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("b" "book notes" plain
-                 (file "~/Org-Roam/Templates/BookNoteTemplate.org")
+                 (file "~/Org/Templates/BookNoteTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
                  :unnarrowed t)
              ("p" "project" plain
-                 (file "~/Org-Roam/Templates/ProjectTemplate.org")
+                 (file "~/Org/Templates/ProjectTemplate.org")
                  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
                  :unnarrowed t)
              )
@@ -203,5 +203,3 @@
 (map! :leader
       :desc "paste-from-clipboard"
       "o p" #'paste-from-clipboard)
-
-
