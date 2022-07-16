@@ -7,3 +7,5 @@ README.md
 .DS_Store
 .vscode
 .emacs-configs/doom-emacs
+.emacs-configs/crafted-emacs
+
