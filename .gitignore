@@ -53,3 +53,5 @@ flycheck_*.el
 
 # ignore doom emacs install
 .emacs-configs/emacs-doom
+.emacs-configs/crafted-emacs
+
