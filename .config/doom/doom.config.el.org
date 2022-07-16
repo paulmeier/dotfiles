@@ -1,5 +1,5 @@
 #+TITLE: Doom
-#+PROPERTY: header-args:emacs-lisp :tangle .config/doom/config.el
+#+PROPERTY: header-args:emacs-lisp :tangle config.el
 
 My emacs DOOM configuration explained. Each section should explain why it exists. Some sections include testing that are not included in the tangle.
 
@@ -245,7 +245,7 @@ My emacs DOOM configuration explained. Each section should explain why it exists
 
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.dotfiles/Zsh.org"))
+                      (expand-file-name "Zsh.org"))
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
@@ -258,7 +258,7 @@ My emacs DOOM configuration explained. Each section should explain why it exists
 
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.dotfiles/Doom.org"))
+                      (expand-file-name "doom.config.el.org"))
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
@@ -354,43 +354,12 @@ My emacs DOOM configuration explained. Each section should explain why it exists
 
 #+end_src
 
-* Copy/Paste from xclipboard (linux)
-#+begin_src emacs-lisp
 
-(defun copy-to-clipboard ()
-  "Copies selection to x-clipboard"
-  (interactive)
-  (if (display-graphic-p)
-      (progn
-        (message "Yanked region to x-clipboard")
-        (call-interactively 'clipboard-kill-ring-save)
-        )
-    (if (region-active-p)
-        (progn
-          (shell-command-on-region (region-beginning) (region-end) "xsel -i -b")
-          (message "Yanked region to clipboard")
-          (deactivate-mark))
-      (message "No region active; can't yank to clipboard!")))
-  )
+* Modular configs
 
-(defun paste-from-clipboard ()
-  "Pastes from x-clipboard"
-  (interactive)
-  (if (display-graphic-p)
-      (progn
-        (clipboard-yank)
-        (message "graphics active")
-        )
-    (insert (shell-command-to-string "xsel -o -b"))
-    )
-  )
+#+begin_src emacs-lisp :tangle no
 
-(map! :leader
-      :desc "copy-to-clipboard"
-      "o y" #'copy-to-clipboard)
-
-(map! :leader
-      :desc "paste-from-clipboard"
-      "o p" #'paste-from-clipboard)
+(pcase system-type
+  ('darwin require ('darwin))
 
 #+end_src

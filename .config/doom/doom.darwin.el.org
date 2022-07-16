@@ -1,0 +1,8 @@
+#+title: Doom Darwin El
+#+PROPERTY: header-args:emacs-lisp :tangle darwin.el
+
+Modular Doom emacs config options specific for Darwin
+
+#+begin_src emacs-lisp
+(message "%% Loading darwin")
+#+end_src
