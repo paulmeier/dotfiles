@@ -83,6 +83,6 @@ npm() {
 * EMACS
 #+begin_src bash
 
-export cmacs="emacs --with-profile=crafted"'
+alias cmacs="emacs --with-profile=crafted"
 
 #+end_src
