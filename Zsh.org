@@ -79,3 +79,10 @@ npm() {
 }
 
 #+end_src
+
+* EMACS
+#+begin_src bash
+
+export cmacs="emacs --with-profile=crafted"'
+
+#+end_src

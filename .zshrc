@@ -33,3 +33,5 @@ npm() {
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
     npm "$@"
 }
+
+export CRAFTED-EMACS="emacs --with-profile=crafted"'
