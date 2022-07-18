@@ -34,4 +34,4 @@ npm() {
     npm "$@"
 }
 
-alias cmacs="emacs --with-profile=crafted"'
+alias cmacs="emacs --with-profile=crafted"
