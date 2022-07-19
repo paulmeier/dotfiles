@@ -361,3 +361,11 @@ My emacs DOOM configuration explained. Each section should explain why it exists
   ('darwin require ('darwin))
 
 #+end_src
+
+* Mermaid
+
+#+begin_src emacs-lisp
+
+(setq ob-mermaid-cli-path "/usr/local/bin/mmdc")
+
+#+end_src

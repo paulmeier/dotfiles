@@ -114,13 +114,6 @@
       (org-babel-tangle))))
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
-(defun efs/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "doom.config.el.org"))
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
-
 (defun my/org-roam-refresh-agenda-list ()
   (interactive)
   (setq org-agenda-files (my/org-roam-list-notes-by-tag "Project")))
@@ -172,3 +165,5 @@
   (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                        (:session . "py")
                                                        (:kernel . "python3"))))
+
+(setq ob-mermaid-cli-path "/usr/local/bin/mmdc")

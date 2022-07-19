@@ -17,3 +17,5 @@
 (unpin! org-roam)
 ;; Microsoft Exchange support
 ;;(package! excorporate)
+
+(package! ob-mermaid)
