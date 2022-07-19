@@ -158,6 +158,17 @@ My emacs DOOM configuration explained. Each section should explain why it exists
 
 #+end_src
 
+* Org-Journal
+
+#+begin_src emacs-lisp
+
+(setq org-journal-date-prefix "#+TITLE:"
+      org-journal-time-prefix "*"
+      org-journal-date-format "%a, %Y-%m-%d"
+      org-journal-file-format "%Y-%m-%d.org")
+
+#+end_src
+
 ** Package
 *** configuration for the org roam directory. Define org roam capture templates.
 

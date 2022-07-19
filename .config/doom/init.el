@@ -136,6 +136,7 @@
         +present         ; Emacs for presentations
         +protocol
         +jupyter
+        +journal
         +roam2)       ; Support for org-protocol:// links
        ;;perl              ; write code no one else can comprehend
        ;;php               ; perl's insecure younger brother
