@@ -86,3 +86,11 @@ npm() {
 alias cmacs="emacs --with-profile=crafted"
 
 #+end_src
+
+* Starship terminal
+
+#+begin_src bash
+
+eval "$(starship init zsh)"
+
+#+end_src
