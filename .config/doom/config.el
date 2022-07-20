@@ -167,3 +167,5 @@
                                                        (:kernel . "python3"))))
 
 (setq ob-mermaid-cli-path "/usr/local/bin/mmdc")
+
+(display-battery-mode 1)

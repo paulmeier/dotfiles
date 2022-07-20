@@ -369,3 +369,12 @@ My emacs DOOM configuration explained. Each section should explain why it exists
 (setq ob-mermaid-cli-path "/usr/local/bin/mmdc")
 
 #+end_src
+
+* Status line
+
+** Display the battery
+#+begin_src emacs-lisp
+
+(display-battery-mode 1)
+
+#+end_src
