@@ -19,3 +19,4 @@
 ;;(package! excorporate)
 
 (package! ob-mermaid)
+(package! ejc-sql)
