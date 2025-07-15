@@ -1,0 +1,132 @@
+#+TITLE: zshrc
+#+PROPERTY: header-args :tangle ".zshrc"
+#+AUTHOR: Paul Meier
+#+DESCRIPTION: Pauls personal Zsh config
+#+STARTUP: showeverything
+
+* Include Work Stuff
+#+begin_src bash :tangle (if (string-equal (system-name) "S427544") ".zshrc" "no")
+source "$HOME/zshrc-work.sh"
+#+end_src
+
+* Include Home Specific Stuff
+** Guile
+#+begin_src bash :tangle (if (string-equal (system-name) "Pauls-MacBook-Air.local") ".zshrc" "no")
+export GUILE_LOAD_PATH="/opt/homebrew/share/guile/site/3.0"
+export GUILE_LOAD_COMPILED_PATH="/opt/homebrew/lib/guile/3.0/site-ccache"
+export GUILE_SYSTEM_EXTENSIONS_PATH="/opt/homebrew/lib/guile/3.0/extensions"
+#+end_src
+
+* oh-my-zsh
+Only tangle these if a .oh-my-zsh folder is found.
+** Alias
+#+begin_src bash :tangle (if (file-directory-p "~/.oh-my-zsh") ".zshrc" "no")
+export ZSH="$HOME/.oh-my-zsh"
+#+end_src
+
+** Theme
+#+begin_src bash :tangle (if (file-directory-p "~/.oh-my-zsh") ".zshrc" "no")
+ZSH_THEME=""
+#+end_src
+
+** Plugins
+#+begin_src bash :tangle (if (file-directory-p "~/.oh-my-zsh") ".zshrc" "no")
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+source $ZSH/oh-my-zsh.sh
+#+end_src
+
+* History
+#+begin_src bash
+export HISTFILE=~/.histfile
+export HISTSIZE=1000
+export SAVEHIST=1000
+#+end_src
+
+* Shell
+Give the shell my likes/dislikes (I hope we are a good match)
+#+begin_src bash
+export EDITOR="emacs -nw"
+#+end_src
+
+* AWS Cli completion
+#+begin_src bash
+export PATH=/usr/local/bin:$PATH
+autoload bashcompinit && bashcompinit
+autoload -Uz compinit && compinit
+complete -C "/usr/local/bin/aws_completer" aws
+#+end_src
+
+* DOOM Scripts
+#+begin_src bash
+export PATH="$HOME/.config/emacs/bin:$PATH"
+#+end_src
+
+* Python
+** Aliases
+#+begin_src bash
+alias python='python3'
+alias pip='python3 -m pip'
+alias venv='python3 -m venv .venv'
+#+end_src
+
+** Location
+On Mac for applications that need 3.9
+#+begin_src bash
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+#+end_src
+
+* NVM
+#+begin_src bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+#+end_src
+
+* Starship terminal
+#+begin_src bash
+eval "$(starship init zsh)"
+#+end_src
+
+* GO
+#+begin_src bash
+export PATH="$PATH:$HOME/go/bin"
+#+end_src
+
+* DOOMDIR
+#+begin_src bash
+export DOOMDIR="~/.config/doom"
+#+end_src
+
+* GREP
+#+begin_src bash
+export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
+#+end_src
+
+* Docker
+For finding the docker cli binary.
+~Note: Not using right now because im using podman~
+#+begin_src bash :tangle no
+export PATH="$PATH:$HOME/.docker/bin"
+export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
+#+end_src
+
+* Rancher Desktop
+~Note: Not tangling right now because im using Podman and Kind instead of RD~
+#+begin_src bash :tangle no
+export PATH="$PATH:$HOME/.rd/bin"
+#+end_src
+
+* Kubernetes
+#+begin_src bash
+alias k="kubectl"
+#+end_src
+
+* Podman
+#+begin_src bash
+alias docker="podman"
+#+end_src
+
+* Jupyter
+#+begin_src bash
+alias jupyter="/opt/homebrew/bin/jupyter"
+#+end_src

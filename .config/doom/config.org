@@ -1,0 +1,374 @@
+* Headers
+#+begin_src elisp
+;; -*- lexical-binding: t; -*-
+#+end_src
+
+* My Variables
+#+begin_src elisp
+(defvar my/org-babel-tangle-files '("zshrc.org")
+  "List of Org files that should be auto-tangled on save.")
+#+end_src
+
+* Shared Modules
+#+begin_src elisp
+(add-to-list 'load-path "~/.config/doom/modules")
+#+end_src
+
+* Conditional Machine Loading
+#+begin_src elisp
+(cond
+ ((member system-name '("S427544"))
+  (add-to-list 'load-path "~/.config/work")
+  (if (locate-library "my-work")
+      (require 'my-work)
+    (message "Warning: my-work.el not found.")))
+ ((member system-name '("Pauls-MacBook-Air.local"))
+  (if (locate-library "my-mac")
+      (require 'my-mac)
+    (message "Warning: my-mac.el not found."))))
+#+end_src
+
+* Beautify Logo
+#+begin_src elisp
+(setq fancy-splash-image (concat doom-private-dir "alfie.png"))
+#+end_src
+
+* Editor
+** Drag Lines
+#+begin_src elisp
+(use-package! drag-stuff
+   :defer t
+   :init
+  (map! "<M-up>"    #'drag-stuff-up
+        "<M-down>"  #'drag-stuff-down
+        "<M-left>"  #'drag-stuff-left
+        "<M-right>" #'drag-stuff-right))
+#+end_src
+
+** Emergency log messages only
+#+begin_src elisp
+(setq warning-minimum-level :emergency)
+;;(setq compilation-scroll-output t)
+#+end_src
+
+** Good Scroll
+#+begin_src elisp
+(use-package! good-scroll
+  :config
+  (good-scroll-mode 1))
+#+end_src
+
+** Full Screen
+#+begin_src elisp
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
+
+** Fonts
+#+begin_src elisp
+;; Fonts
+;; "SN Pro" "Roboto Mono" "Fira Code" "Noto Sans Symbols 2"
+(setq doom-font (font-spec :family "Fira Code" :size 15)
+      doom-variable-pitch-font (font-spec :family "SN Pro" :size 15 :weight 'medium)
+      doom-big-font (font-spec :family "Fira Code" :size 24))
+#+end_src
+
+** Modeline
+#+begin_src elisp
+(display-battery-mode 1)
+#+end_src
+
+* Projectile
+#+begin_src elisp
+(setq projectile-project-search-path '("~/Projects"))
+#+end_src
+
+* Dired
+** Configure Default Directory
+If non-nil, Dired tries to guess a default target directory.
+#+begin_src elisp
+(setq dired-dwim-target t)
+#+end_src
+
+* Org
+** Org View Mode
+To hide org markup when viewing a document.
+#+begin_src elisp
+;;(use-package! org-view-mode)
+#+end_src
+*** Map view
+Don't need this with dooms new +pretty setup
+#+begin_src elisp :tangle no
+(use-package! evil-org
+  :hook (org-mode . evil-org-mode)
+  :config
+  (map!
+   :map evil-org-mode-map
+   :localleader
+   :desc "View Toggle" "v" #'org-view-mode))
+#+end_src
+
+** Org Setup
+Needs some cleanup :(
+#+begin_src elisp
+(defun my/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (valign-mode 1)
+  (visual-line-mode 1)
+  (visual-fill-column-mode 1)
+  (display-line-numbers-mode 0)
+  (org-display-inline-images)
+  (setq org-download-image-dir "./.attach")
+  (setq evil-auto-indent nil)
+  (setq org-attach-id-dir "./.attach")
+  (setq org-image-actual-width nil)
+  (setq visual-fill-column-center-text t)
+  (setq org-log-into-drawer "LOGBOOK")
+  (setq org-use-property-inheritance t))
+
+(use-package! org
+  :hook (org-mode . my/org-mode-setup)
+  :config (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
+#+end_src
+
+** Org Babel Config
+#+begin_src elisp :tangle no
+(setq org-babel-load-languages
+      '((emacs-lisp . t)
+        (python . t)
+        (shell . t)
+        (js . t)
+        (mermaid . t)
+        (scheme . t)
+        (verb . t)
+        (ein . t)
+        (typescript . t)))
+#+end_src
+
+** Org Babel Tangle Specific Config Files
+#+begin_src elisp
+(defun my/org-babel-tangle-on-save ()
+  "Auto-tangle specific Org files on save."
+  (when (and (string= (file-name-extension buffer-file-name) "org")
+             (member (file-name-nondirectory buffer-file-name)
+                     my/org-babel-tangle-files))
+    (org-babel-tangle)))
+
+(add-hook 'after-save-hook 'my/org-babel-tangle-on-save)
+#+end_src
+
+** Org Create TODOs from block of lines
+#+begin_src elisp
+(defun org-set-line-checkbox (arg)
+  (interactive "P")
+  (let ((n (or arg 1)))
+    (when (region-active-p)
+      (setq n (count-lines (region-beginning)
+                           (region-end)))
+      (goto-char (region-beginning)))
+    (dotimes (i n)
+      (beginning-of-line)
+      (insert "- [ ] ")
+      (forward-line))
+    (beginning-of-line)))
+#+end_src
+
+* Verb
+#+begin_src elisp
+(map! :leader
+      (:prefix ("v" . "verb")
+       :desc "send request"
+       "r" #'verb-send-request-on-point-other-window))
+(setq verb-suppress-load-unsecure-prelude-warning t)
+#+end_src
+
+* Denote
+Always load Denote, I use notes everywhere
+** Use Package
+#+begin_src elisp
+(use-package! denote
+  :defer t
+  :init
+  ;; (require 'denote-journal-extras)
+  (add-hook 'denote-after-new-note-hook #'project-and-active-to-agenda)
+  (add-hook 'denote-journal-extras-hook 'my-denote-tmr)
+  (setq denote-dired-directories '("~/Notes"))
+  (setq denote-directory "~/Notes")
+  :custom
+  (denote-known-keywords '("journal" "active" "project"))
+  (denote-prompts '(subdirectory title keywords templates)))
+#+end_src
+
+** Customize Denote
+#+begin_src elisp
+(unless (boundp 'denote-templates)
+    (setq denote-templates '()))
+;; (setq denote-file-type "markdown-yaml")
+(setq denote-journal-extras-directory "~/Notes/journal")
+(push '(journal . "\n\n* Daily Journal\n\n") denote-templates)
+#+end_src
+
+** Keybindings
+#+begin_src elisp
+(map! :leader
+      (:prefix ("d" . "denote")
+       :desc "New Note" "n" #'denote
+       :desc "Insert Link" "i" #'denote-insert-link
+       :desc "New Journal" "j" #'denote-journal-extras-new-or-existing-entry
+       :desc "Find in Notes" "f" #'consult-notes-search-in-all-notes
+       :desc "Search Notes" "s" #'consult-notes))
+#+end_src
+
+** Consult Notes
+#+begin_src elisp
+(use-package! consult-notes
+  :config
+  (setq consult-notes-file-dir-sources '(("Notes"  ?o  "~/Notes")))
+  (when (locate-library "denote")
+    (consult-notes-denote-mode)))
+  ;; search only for text files in denote dir
+  ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
+#+end_src
+
+** Project denote stuff
+#+begin_src elisp
+(defun my/denote-insert-category (category)
+  (save-excursion
+    (beginning-of-buffer)
+    (while (and
+            (< (point) (point-max))
+            (string= "#+"
+                    (buffer-substring-no-properties
+                     (point-at-bol)
+                     (+ (point-at-bol) 2))))
+      (next-line))
+
+    (insert "#+category: " category)
+    (save-buffer)))
+
+(defun my/denote-create-topic-note ()
+  (interactive)
+  (let* ((topic-files (mapcar (lambda (file)
+                                (cons (denote-retrieve-front-matter-title-value file 'org)
+                                      file))
+                              (denote-directory-files-matching-regexp "_kt")))
+         (selected-topic (completing-read "Select topic: "
+                                          (mapcar #'car topic-files))))
+
+    (denote (denote-title-prompt (format "%s: " selected-topic))
+            (denote-keywords-prompt))
+
+    ;(my/denote-insert-category selected-topic)
+    ))
+
+(defun my/denote-extract-subtree ()
+  (interactive)
+  (save-excursion
+    (if-let ((text (org-get-entry))
+             (heading (denote-link-ol-get-heading)))
+        (progn
+          (delete-region (org-entry-beginning-position)
+                         (save-excursion (org-end-of-subtree t) (point)))
+          (denote heading (denote-keywords-prompt) 'org)
+          (insert text)))))
+
+(defvar my/denote-keywords
+  '(("pra" . "Active Project")
+    ("prb" . "Backlogged Project")
+    ("prc" . "Closed Project")))
+
+(defun my/denote-custom-affixation (completions)
+  (mapcar (lambda (completion)
+            (list completion
+                  ""
+                  (alist-get completion
+                             my/denote-keywords
+                             nil
+                             nil
+                             #'string=)))
+          completions))
+
+(defun my/denote-keyword-prompt ()
+  (let ((completion-extra-properties
+         (list :affixation-function
+               #'my/denote-custom-affixation)))
+    (denote-keywords-prompt)))
+#+end_src
+
+* Copilot
+** Copilot Keybindings
+#+begin_src elisp
+(map! :leader
+      (:prefix ("l" . "co-chat")
+       :desc "Chat Prompt" "p" #'copilot-chat-prompt
+       :desc "Reset" "r" #'copilot-chat-reset
+       :desc "Chat buffers" "d" #'copilot-chat-display
+       :desc "Explain selected" "e" #'copilot-chat-explain
+       :desc "Review selected" "v" #'copilot-chat-review
+       :desc "Document selected" "c" #'copilot-chat-doc
+       :desc "Fix selected" "f" #'copilot-chat-fix
+       :desc "Optimize selected" "o" #'copilot-chat-optimize
+       :desc "Write tests for selected" "t" #'copilot-chat-test
+       :desc "Custom prompt with selection" "p" #'copilot-chat-custom-prompt-selection
+       :desc "Current buffer to copilot chat" "s" #'copilot-chat-add-current-buffer
+       :desc "Buffer list" "b" #'copilot-chat-list
+       :desc "Previous prompt history" "h" #'copilot-chat-prompt-history-previous
+       :desc "Next prompt history" "n" #'copilot-chat-prompt-history-next))
+#+end_src
+
+* Custom Functions
+** Tangle all files in a specified directory
+#+begin_src elisp
+(defun my/tangle-org-files-in-directory (directory)
+  "Tangle all .org files in the specified DIRECTORY."
+  (interactive "DDirectory: ")
+  (let ((org-files (directory-files-recursively directory "\\.org\\'")))
+    (dolist (file org-files)
+      (message "Tangling %s..." file)
+      (org-babel-tangle-file file))))
+#+end_src
+
+** Check formatter being used
+#+begin_src elisp
+(defun my/check-formatter-for-mode (mode)
+  "Check the formatter used for a specific MODE."
+  (interactive
+   (list (intern (completing-read "Mode: " obarray
+                                  (lambda (m)
+                                    (and (fboundp m)
+                                         (string-suffix-p "-mode" (symbol-name m))))
+                                  t))))
+  (with-temp-buffer
+    (funcall mode)
+    (message "Formatter for %s: %s" mode +format-with)))
+#+end_src
+
+* Typescript
+#+begin_src elisp
+;; (setq-hook! 'javascript-mode-hook +format-with-lsp t)
+;; (setq-hook! 'javascript-mode-hook +format-with 'prettier)
+(setq-hook! 'javascript-mode-hook +format-with 'prettier)
+(setq-hook! 'typescript-mode-hook +format-with 'prettier)
+(setq-hook! 'typescript-tsx-mode-hook +format-with 'prettier)
+;; (setq-hook! 'javascript-mode-hook +format-with 'eslint)
+;; (setq-hook! 'typescript-mode-hook +format-with 'standard)
+;; (setq-hook! 'javascript-mode-hook +format-with :none)
+;; (setq typescript-indent-level 2)
+;; Use standard-js
+;; (setq-hook! 'js2-jsx-mode-hook +format-with 'standard)
+;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
+;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
+;; (setq-hook! 'js-mode-hook +format-with 'standard)
+#+end_src
+
+* Python
+** Jupyter
+#+begin_src elisp :tangle no
+(setq jupyter-python-command "/opt/homebrew/bin/python3")
+#+end_src
+
+* Debug Emacs
+#+begin_src elisp :tangle no
+(setq debug-on-error t)
+#+end_src

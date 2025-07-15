@@ -1,0 +1,70 @@
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+.DS_Store
+.idea
+*.log
+tmp/
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# flymake-mode
+*_flymake.*
+
+# eshell files
+/eshell/history
+/eshell/lastdir
+
+# elpa packages
+/elpa/
+
+# reftex files
+*.rel
+
+# AUCTeX auto folder
+/auto/
+
+# cask packages
+.cask/
+dist/
+
+# Flycheck
+flycheck_*.el
+
+# server auth directory
+/server/
+
+# projectiles files
+.projectil 
+
+# directory configuration
+.dir-locals.el
+
+# Wut
+.mypy_cache/
+
+# Soon
+.authinfo.gpg
+
+# Custom Emacs Project
+.config/pmacs/elpa
+.config/pmacs/elpaca
+.config/pmacs/eln-cache
+.config/pmacs/auto-save-list
+.config/pmacs/recentf
+
+# Build this, dont version it
+.config/doom/config.el
+
+# Zsh - Dont include work and require it to be built
+zshrc-work.sh
+zshrc-work.org
+.zshrc
