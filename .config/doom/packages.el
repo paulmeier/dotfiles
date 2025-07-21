@@ -29,8 +29,10 @@
 (package! url-http-oauth)
 (package! websocket)
 
-;; Denote Packages
+;; Notes Packages
 (package! denote)
+(package! denote-org)
+(package! denote-menu)
 (package! consult-denote)
 (package! consult-notes)
 
