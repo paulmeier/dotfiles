@@ -1,0 +1,16 @@
+#+title: Readme
+
+* Requirements
+** MAC
+*** GNU Stow
+#+begin_src bash
+brew install stow
+#+end_src
+
+*** YAS-SNIPPETS
+- [[https://github.com/doomemacs/snippets][Github Repo]]
+
+* Link the configuration file
+#+begin_src bash
+stow .
+#+end_src
