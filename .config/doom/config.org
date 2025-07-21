@@ -119,6 +119,8 @@ Needs some cleanup :(
   (visual-fill-column-mode 1)
   (display-line-numbers-mode 0)
   (org-display-inline-images)
+  (setq org-agenda-files (list (or (getenv "ORG_AGENDA_FILES") "~/Org")))
+  (setq org-directory (or (getenv "ORG_DIRECTORY") "~/Org"))
   (setq org-download-image-dir "./.attach")
   (setq evil-auto-indent nil)
   (setq org-attach-id-dir "./.attach")
@@ -188,7 +190,6 @@ Always load Denote, I use notes everywhere
 ** Use Package
 #+begin_src elisp
 (use-package! denote
-  :defer t
   :init
   ;; (require 'denote-journal-extras)
   (add-hook 'denote-after-new-note-hook #'project-and-active-to-agenda)
@@ -196,6 +197,11 @@ Always load Denote, I use notes everywhere
   :custom
   (denote-known-keywords '("journal" "active" "project"))
   (denote-prompts '(subdirectory title keywords templates)))
+  :config
+  (setq denote-dired-directories
+      (list (or (getenv "DENOTE_DIRED_DIRECTORIES") "~/Notes")))
+  (setq denote-directory (or (getenv "DENOTE_DIRECTORY") "~/Notes"))
+  (setq denote-journal-extras-directory (or (getenv "DENOTE_JOURNAL_EXTRAS_DIRECTORY") "~/Notes"))
 #+end_src
 
 ** Customize Denote
@@ -220,7 +226,9 @@ Always load Denote, I use notes everywhere
 ** Consult Notes
 #+begin_src elisp
 (use-package! consult-notes
-  :config 
+  :config
+  (setq consult-notes-file-dir-sources
+      (list (list "Notes" ?o (or (getenv "CONSULT_NOTES_FILE_DIR_SOURCES") "~/Notes"))))
   (when (locate-library "denote")
     (consult-notes-denote-mode)))
   ;; search only for text files in denote dir

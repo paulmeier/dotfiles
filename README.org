@@ -14,3 +14,24 @@ brew install stow
 #+begin_src bash
 stow .
 #+end_src
+
+* ENV
+** Denote Locations
+#+begin_src sh
+export DENOTE_DIRED_DIRECTORIES=""
+export DENOTE_DIRECTORY=""
+export DENOTE_JOURNAL_EXTRAS_DIRECTORY=""
+#+end_src
+
+** Org Locations
+#+begin_src sh
+export ORG_WORKLIST_LOCATION=""
+export ORG_DIRECTORY=""
+export ORG_DOWNLOAD_IMAGE_DIR=""
+export ORG_AGENDA_FILES=""
+#+end_src
+
+** Consult Locations
+#+begin_src sh
+export CONSULT_NOTES_FILE_DIR_SOURCES=""
+#+end_src
