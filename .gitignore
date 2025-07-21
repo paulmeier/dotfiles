@@ -68,3 +68,7 @@ flycheck_*.el
 zshrc-work.sh
 zshrc-work.org
 .zshrc
+
+# Home for now
+my-mac.el
+my-mac.org

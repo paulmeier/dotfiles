@@ -193,8 +193,6 @@ Always load Denote, I use notes everywhere
   ;; (require 'denote-journal-extras)
   (add-hook 'denote-after-new-note-hook #'project-and-active-to-agenda)
   (add-hook 'denote-journal-extras-hook 'my-denote-tmr)
-  (setq denote-dired-directories '("~/Notes"))
-  (setq denote-directory "~/Notes")
   :custom
   (denote-known-keywords '("journal" "active" "project"))
   (denote-prompts '(subdirectory title keywords templates)))
@@ -205,7 +203,6 @@ Always load Denote, I use notes everywhere
 (unless (boundp 'denote-templates)
     (setq denote-templates '()))
 ;; (setq denote-file-type "markdown-yaml")
-(setq denote-journal-extras-directory "~/Notes/journal")
 (push '(journal . "\n\n* Daily Journal\n\n") denote-templates)
 #+end_src
 
@@ -223,8 +220,7 @@ Always load Denote, I use notes everywhere
 ** Consult Notes
 #+begin_src elisp
 (use-package! consult-notes
-  :config
-  (setq consult-notes-file-dir-sources '(("Notes"  ?o  "~/Notes")))
+  :config 
   (when (locate-library "denote")
     (consult-notes-denote-mode)))
   ;; search only for text files in denote dir
@@ -342,6 +338,13 @@ Always load Denote, I use notes everywhere
   (with-temp-buffer
     (funcall mode)
     (message "Formatter for %s: %s" mode +format-with)))
+#+end_src
+
+* YAS Snippets
+#+begin_src elisp
+(use-package! doom-snippets
+  :load-path "~/Projects/snippets"
+  :after yasnippet)
 #+end_src
 
 * Typescript
