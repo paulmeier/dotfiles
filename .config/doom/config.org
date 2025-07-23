@@ -215,7 +215,7 @@ Always load Denote, I use notes everywhere
 ** Keybindings
 #+begin_src elisp
 (map! :leader
-      (:prefix ("d" . "denote")
+      (:prefix ("e" . "denote")
        :desc "New Note" "n" #'denote
        :desc "Insert Link" "i" #'denote-insert-link
        :desc "New Journal" "j" #'denote-journal-extras-new-or-existing-entry
