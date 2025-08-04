@@ -30,7 +30,7 @@
 
 * Beautify Logo
 #+begin_src elisp
-(setq fancy-splash-image (concat doom-private-dir "alfie.png"))
+(setq fancy-splash-image (concat doom-private-dir "teenjus-dance.jpeg"))
 #+end_src
 
 * Editor

@@ -43,10 +43,10 @@
 (package! drag-stuff)
 
 ;; AI
-;; (package! copilot-chat
-;;   :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
-;; (package! copilot)
-(package! gptel :recipe (:nonrecursive t))
+(package! copilot-chat
+  :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
+(package! copilot)
+;;(package! gptel :recipe (:nonrecursive t))
 
 ;; Kubernetes
 ;;(package! kubernetes)
@@ -58,6 +58,8 @@
 (when (string= (system-name) "S427544")
   (package! lab) ;; Gitlab
   (package! impostman) ;; Postman importing
+  (package! jinja2-mode) ;; jinja2 support
+  ;;
   )
 
 ;; Obsidian
