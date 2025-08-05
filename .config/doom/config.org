@@ -135,7 +135,7 @@ Needs some cleanup :(
 #+end_src
 
 ** Org Babel Config
-#+begin_src elisp :tangle no
+#+begin_src elisp
 (setq org-babel-load-languages
       '((emacs-lisp . t)
         (python . t)
