@@ -1,75 +1,163 @@
-* Headers
+#+title: Config
+
+Place your private configuration here! Remember, you do not need to run 'doom
+sync' after modifying this file!
+
+* TOC :toc:
+- [[#setup][Setup]]
+  - [[#lexical-binding][Lexical Binding]]
+  - [[#my-custom-variables][My Custom Variables]]
+  - [[#my-shared-modules][My Shared Modules]]
+  - [[#conditional-machine-loading][Conditional Machine Loading]]
+  - [[#my-custom-functions][My Custom Functions]]
+- [[#editor][Editor]]
+  - [[#beautify-logo][Beautify Logo]]
+  - [[#personal-identification][Personal Identification]]
+  - [[#font][Font]]
+  - [[#theme][Theme]]
+  - [[#line-numbers][Line Numbers]]
+  - [[#emergency-log-messages-only][Emergency log messages only]]
+  - [[#full-screen][Full Screen]]
+  - [[#modeline][Modeline]]
+- [[#projectile][Projectile]]
+- [[#org][Org]]
+  - [[#behavior][Behavior]]
+  - [[#org-babel-config][Org Babel Config]]
+  - [[#org-babel-tangle-specific-config-files][Org Babel Tangle Specific Config Files]]
+- [[#dired][Dired]]
+  - [[#configure-default-directory][Configure Default Directory]]
+- [[#programming][Programming]]
+  - [[#typescript][Typescript]]
+  - [[#python][Python]]
+- [[#packages][Packages]]
+  - [[#drag-lines][Drag Lines]]
+  - [[#verb][Verb]]
+  - [[#denote][Denote]]
+  - [[#copilot][Copilot]]
+  - [[#yas-snippets][YAS Snippets]]
+- [[#debug-emacs][Debug Emacs]]
+
+* Setup
+** Lexical Binding
 #+begin_src elisp
 ;; -*- lexical-binding: t; -*-
 #+end_src
 
-* My Variables
+** My Custom Variables
 #+begin_src elisp
 (defvar my/org-babel-tangle-files '("zshrc.org")
   "List of Org files that should be auto-tangled on save.")
 #+end_src
 
-* Shared Modules
+** My Shared Modules
 #+begin_src elisp
 (add-to-list 'load-path "~/.config/doom/modules")
 #+end_src
 
-* Conditional Machine Loading
+** Conditional Machine Loading
+Load any custom private configurations only to be loaded based on the host machine.
 #+begin_src elisp
 (cond
  ((member system-name '("S427544"))
-  (add-to-list 'load-path "~/.config/work")
+  (add-load-path! "~/.config/work")
   (if (locate-library "my-work")
       (require 'my-work)
     (message "Warning: my-work.el not found.")))
  ((member system-name '("Pauls-MacBook-Air.local"))
+  (add-load-path! "~/.config/home")
   (if (locate-library "my-mac")
       (require 'my-mac)
     (message "Warning: my-mac.el not found."))))
 #+end_src
 
-* Beautify Logo
+** My Custom Functions
+*** Tangle all files in a specified directory
+#+begin_src elisp
+(defun my/tangle-org-files-in-directory (directory)
+  "Tangle all .org files in the specified DIRECTORY."
+  (interactive "DDirectory: ")
+  (let ((org-files (directory-files-recursively directory "\\.org\\'")))
+    (dolist (file org-files)
+      (message "Tangling %s..." file)
+      (org-babel-tangle-file file))))
+#+end_src
+
+*** Check formatter being used
+#+begin_src elisp
+(defun my/check-formatter-for-mode (mode)
+  "Check the formatter used for a specific MODE."
+  (interactive
+   (list (intern (completing-read "Mode: " obarray
+                                  (lambda (m)
+                                    (and (fboundp m)
+                                         (string-suffix-p "-mode" (symbol-name m))))
+                                  t))))
+  (with-temp-buffer
+    (funcall mode)
+    (message "Formatter for %s: %s" mode +format-with)))
+#+end_src
+
+* Editor
+** Beautify Logo
 #+begin_src elisp
 (setq fancy-splash-image (concat doom-private-dir "teenjus-dance.jpeg"))
 #+end_src
 
-* Editor
-** Drag Lines
+** Personal Identification
+Some functionality uses this to identify you, e.g. GPG configuration, email
+clients, file templates and snippets. It is optional.
+#+begin_src elisp :tangle no
+(setq user-full-name "Paul Meier"
+        user-mail-address "paulmartinmeier@gmail.com")
+#+end_src
+
+** Font
+Doom exposes five (optional) variables for controlling fonts in Doom:
+
+- `doom-font' -- the primary font to use
+- `doom-variable-pitch-font' -- a non-monospace font (where applicable)
+- `doom-big-font' -- used for `doom-big-font-mode'; use this for
+    presentations or streaming.
+- `doom-symbol-font' -- for symbols
+- `doom-serif-font' -- for the `fixed-pitch-serif' face
+
+See 'C-h v doom-font' for documentation and more examples of what they
+accept. For example:
+
+~Note~ I'm normally setting this in the machine specific settings.
+#+begin_src elisp :tangle no
+(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
+    doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+#+end_src
+
+If you or Emacs can't find your font, use 'M-x describe-font' to look them
+up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
+refresh your font settings. If Emacs still can't find your font, it likely
+wasn't installed correctly. Font issues are rarely Doom issues!
+
+** Theme
+There are two ways to load a theme. Both assume the theme is installed and
+available. You can either set `doom-theme' or manually load a theme with the
+`load-theme' function. This is the default:
 #+begin_src elisp
-(use-package! drag-stuff
-   :defer t
-   :init
-  (map! "<M-up>"    #'drag-stuff-up
-        "<M-down>"  #'drag-stuff-down
-        "<M-left>"  #'drag-stuff-left
-        "<M-right>" #'drag-stuff-right))
+(setq doom-theme 'doom-one)
+#+end_src
+
+** Line Numbers
+This determines the style of line numbers in effect. If set to `nil', line
+numbers are disabled. For relative line numbers, set this to `relative'.
+#+begin_src elisp
+(setq display-line-numbers-type t)
 #+end_src
 
 ** Emergency log messages only
 #+begin_src elisp
 (setq warning-minimum-level :emergency)
-;;(setq compilation-scroll-output t)
-#+end_src
-
-** Good Scroll
-#+begin_src elisp
-(use-package! good-scroll
-  :config
-  (good-scroll-mode 1))
 #+end_src
 
 ** Full Screen
 #+begin_src elisp
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
-#+end_src
-
-** Fonts
-#+begin_src elisp
-;; Fonts
-;; "SN Pro" "Roboto Mono" "Fira Code" "Noto Sans Symbols 2"
-(setq doom-font (font-spec :family "Fira Code" :size 15)
-      doom-variable-pitch-font (font-spec :family "SN Pro" :size 15 :weight 'medium)
-      doom-big-font (font-spec :family "Fira Code" :size 24))
 #+end_src
 
 ** Modeline
@@ -78,37 +166,19 @@
 #+end_src
 
 * Projectile
-#+begin_src elisp
+~Note:~ I'm setting this in host specific configurations.
+#+begin_src elisp :tangle no
 (setq projectile-project-search-path '("~/Projects"))
 #+end_src
 
-* Dired
-** Configure Default Directory
-If non-nil, Dired tries to guess a default target directory.
-#+begin_src elisp
-(setq dired-dwim-target t)
-#+end_src
-
 * Org
-** Org View Mode
-To hide org markup when viewing a document.
-#+begin_src elisp
-;;(use-package! org-view-mode)
-#+end_src
-*** Map view
-Don't need this with dooms new +pretty setup
+If you use `org' and don't want your org files in the default location below,
+change `org-directory'. It must be set before org loads!
 #+begin_src elisp :tangle no
-(use-package! evil-org
-  :hook (org-mode . evil-org-mode)
-  :config
-  (map!
-   :map evil-org-mode-map
-   :localleader
-   :desc "View Toggle" "v" #'org-view-mode))
+(setq org-directory "~/Org/")
 #+end_src
 
-** Org Setup
-Needs some cleanup :(
+** Behavior
 #+begin_src elisp
 (defun my/org-mode-setup ()
   (org-indent-mode)
@@ -119,8 +189,6 @@ Needs some cleanup :(
   (visual-fill-column-mode 1)
   (display-line-numbers-mode 0)
   (org-display-inline-images)
-  (setq org-agenda-files (list (or (getenv "ORG_AGENDA_FILES") "~/Org")))
-  (setq org-directory (or (getenv "ORG_DIRECTORY") "~/Org"))
   (setq org-download-image-dir "./.attach")
   (setq evil-auto-indent nil)
   (setq org-attach-id-dir "./.attach")
@@ -135,7 +203,7 @@ Needs some cleanup :(
 #+end_src
 
 ** Org Babel Config
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (setq org-babel-load-languages
       '((emacs-lisp . t)
         (python . t)
@@ -160,23 +228,84 @@ Needs some cleanup :(
 (add-hook 'after-save-hook 'my/org-babel-tangle-on-save)
 #+end_src
 
-** Org Create TODOs from block of lines
+* Dired
+** Configure Default Directory
+If non-nil, Dired tries to guess a default target directory.
 #+begin_src elisp
-(defun org-set-line-checkbox (arg)
-  (interactive "P")
-  (let ((n (or arg 1)))
-    (when (region-active-p)
-      (setq n (count-lines (region-beginning)
-                           (region-end)))
-      (goto-char (region-beginning)))
-    (dotimes (i n)
-      (beginning-of-line)
-      (insert "- [ ] ")
-      (forward-line))
-    (beginning-of-line)))
+(setq dired-dwim-target t)
 #+end_src
 
-* Verb
+* Programming
+** Typescript
+#+begin_src elisp
+;; (setq-hook! 'javascript-mode-hook +format-with-lsp t)
+;; (setq-hook! 'javascript-mode-hook +format-with 'prettier)
+(setq-hook! 'javascript-mode-hook +format-with 'prettier)
+(setq-hook! 'typescript-mode-hook +format-with 'prettier)
+(setq-hook! 'typescript-tsx-mode-hook +format-with 'prettier)
+;; (setq-hook! 'javascript-mode-hook +format-with 'eslint)
+;; (setq-hook! 'typescript-mode-hook +format-with 'standard)
+;; (setq-hook! 'javascript-mode-hook +format-with :none)
+;; (setq typescript-indent-level 2)
+;; Use standard-js
+;; (setq-hook! 'js2-jsx-mode-hook +format-with 'standard)
+;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
+;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
+;; (setq-hook! 'js-mode-hook +format-with 'standard)
+#+end_src
+
+** Python
+*** Jupyter
+#+begin_src elisp :tangle no
+(setq jupyter-python-command "/opt/homebrew/bin/python3")
+#+end_src
+
+
+* Packages
+Whenever you reconfigure a package, make sure to wrap your config in an
+`after!' block, otherwise Doom's defaults may override your settings. E.g.
+
+    (after! PACKAGE
+    (setq x y))
+
+The exceptions to this rule:
+
+    - Setting file/directory variables (like `org-directory')
+    - Setting variables which explicitly tell you to set them before their
+    package is loaded (see 'C-h v VARIABLE' to look up their documentation).
+    - Setting doom variables (which start with 'doom-' or '+').
+
+Here are some additional functions/macros that will help you configure Doom.
+
+- `load!' for loading external *.el files relative to this one
+- `use-package!' for configuring packages
+- `after!' for running code after a package has loaded
+- `add-load-path!' for adding directories to the `load-path', relative to
+    this file. Emacs searches the `load-path' when you load packages with
+    `require' or `use-package'.
+- `map!' for binding new keys
+
+To get information about any of these functions/macros, move the cursor over
+the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
+This will open documentation for it, including demos of how they are used.
+Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
+etc).
+
+You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
+they are implemented.
+
+** Drag Lines
+#+begin_src elisp
+(use-package! drag-stuff
+   :defer t
+   :init
+  (map! "<M-up>"    #'drag-stuff-up
+        "<M-down>"  #'drag-stuff-down
+        "<M-left>"  #'drag-stuff-left
+        "<M-right>" #'drag-stuff-right))
+#+end_src
+
+** Verb
 #+begin_src elisp
 (map! :leader
       (:prefix ("v" . "verb")
@@ -185,9 +314,8 @@ Needs some cleanup :(
 (setq verb-suppress-load-unsecure-prelude-warning t)
 #+end_src
 
-* Denote
-Always load Denote, I use notes everywhere
-** Use Package
+** Denote
+*** Configure
 #+begin_src elisp
 (use-package! denote
   :init
@@ -204,7 +332,7 @@ Always load Denote, I use notes everywhere
   (setq denote-journal-extras-directory (or (getenv "DENOTE_JOURNAL_EXTRAS_DIRECTORY") "~/Notes"))
 #+end_src
 
-** Customize Denote
+*** Customize Denote
 #+begin_src elisp
 (unless (boundp 'denote-templates)
     (setq denote-templates '()))
@@ -212,7 +340,7 @@ Always load Denote, I use notes everywhere
 (push '(journal . "\n\n* Daily Journal\n\n") denote-templates)
 #+end_src
 
-** Keybindings
+*** Keybindings
 #+begin_src elisp
 (map! :leader
       (:prefix ("e" . "denote")
@@ -223,7 +351,7 @@ Always load Denote, I use notes everywhere
        :desc "Search Notes" "s" #'consult-notes))
 #+end_src
 
-** Consult Notes
+*** Consult Notes
 #+begin_src elisp
 (use-package! consult-notes
   :config
@@ -235,73 +363,8 @@ Always load Denote, I use notes everywhere
   ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
 #+end_src
 
-** Project denote stuff
-#+begin_src elisp
-(defun my/denote-insert-category (category)
-  (save-excursion
-    (beginning-of-buffer)
-    (while (and
-            (< (point) (point-max))
-            (string= "#+"
-                    (buffer-substring-no-properties
-                     (point-at-bol)
-                     (+ (point-at-bol) 2))))
-      (next-line))
-
-    (insert "#+category: " category)
-    (save-buffer)))
-
-(defun my/denote-create-topic-note ()
-  (interactive)
-  (let* ((topic-files (mapcar (lambda (file)
-                                (cons (denote-retrieve-front-matter-title-value file 'org)
-                                      file))
-                              (denote-directory-files-matching-regexp "_kt")))
-         (selected-topic (completing-read "Select topic: "
-                                          (mapcar #'car topic-files))))
-
-    (denote (denote-title-prompt (format "%s: " selected-topic))
-            (denote-keywords-prompt))
-
-    ;(my/denote-insert-category selected-topic)
-    ))
-
-(defun my/denote-extract-subtree ()
-  (interactive)
-  (save-excursion
-    (if-let ((text (org-get-entry))
-             (heading (denote-link-ol-get-heading)))
-        (progn
-          (delete-region (org-entry-beginning-position)
-                         (save-excursion (org-end-of-subtree t) (point)))
-          (denote heading (denote-keywords-prompt) 'org)
-          (insert text)))))
-
-(defvar my/denote-keywords
-  '(("pra" . "Active Project")
-    ("prb" . "Backlogged Project")
-    ("prc" . "Closed Project")))
-
-(defun my/denote-custom-affixation (completions)
-  (mapcar (lambda (completion)
-            (list completion
-                  ""
-                  (alist-get completion
-                             my/denote-keywords
-                             nil
-                             nil
-                             #'string=)))
-          completions))
-
-(defun my/denote-keyword-prompt ()
-  (let ((completion-extra-properties
-         (list :affixation-function
-               #'my/denote-custom-affixation)))
-    (denote-keywords-prompt)))
-#+end_src
-
-* Copilot
-** Copilot Keybindings
+** Copilot
+*** Copilot Keybindings
 #+begin_src elisp
 (map! :leader
       (:prefix ("l" . "co-chat")
@@ -321,62 +384,11 @@ Always load Denote, I use notes everywhere
        :desc "Next prompt history" "n" #'copilot-chat-prompt-history-next))
 #+end_src
 
-* Custom Functions
-** Tangle all files in a specified directory
-#+begin_src elisp
-(defun my/tangle-org-files-in-directory (directory)
-  "Tangle all .org files in the specified DIRECTORY."
-  (interactive "DDirectory: ")
-  (let ((org-files (directory-files-recursively directory "\\.org\\'")))
-    (dolist (file org-files)
-      (message "Tangling %s..." file)
-      (org-babel-tangle-file file))))
-#+end_src
-
-** Check formatter being used
-#+begin_src elisp
-(defun my/check-formatter-for-mode (mode)
-  "Check the formatter used for a specific MODE."
-  (interactive
-   (list (intern (completing-read "Mode: " obarray
-                                  (lambda (m)
-                                    (and (fboundp m)
-                                         (string-suffix-p "-mode" (symbol-name m))))
-                                  t))))
-  (with-temp-buffer
-    (funcall mode)
-    (message "Formatter for %s: %s" mode +format-with)))
-#+end_src
-
-* YAS Snippets
+** YAS Snippets
 #+begin_src elisp
 (use-package! doom-snippets
   :load-path "~/Projects/snippets"
   :after yasnippet)
-#+end_src
-
-* Typescript
-#+begin_src elisp
-;; (setq-hook! 'javascript-mode-hook +format-with-lsp t)
-;; (setq-hook! 'javascript-mode-hook +format-with 'prettier)
-(setq-hook! 'javascript-mode-hook +format-with 'prettier)
-(setq-hook! 'typescript-mode-hook +format-with 'prettier)
-(setq-hook! 'typescript-tsx-mode-hook +format-with 'prettier)
-;; (setq-hook! 'javascript-mode-hook +format-with 'eslint)
-;; (setq-hook! 'typescript-mode-hook +format-with 'standard)
-;; (setq-hook! 'javascript-mode-hook +format-with :none)
-;; (setq typescript-indent-level 2)
-;; Use standard-js
-;; (setq-hook! 'js2-jsx-mode-hook +format-with 'standard)
-;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
-;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
-;; (setq-hook! 'js-mode-hook +format-with 'standard)
-#+end_src
-
-* Python
-** Jupyter
-#+begin_src elisp :tangle no
-(setq jupyter-python-command "/opt/homebrew/bin/python3")
 #+end_src
 
 * Debug Emacs

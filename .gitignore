@@ -72,3 +72,6 @@ zshrc-work.org
 # Home for now
 my-mac.el
 my-mac.org
+
+# backups
+*.backup
