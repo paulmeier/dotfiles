@@ -104,8 +104,7 @@ export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
 
 * Docker
 For finding the docker cli binary.
-~Note: Not using right now because im using podman~
-#+begin_src bash :tangle no
+#+begin_src bash
 export PATH="$PATH:$HOME/.docker/bin"
 export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
 #+end_src
@@ -122,7 +121,8 @@ alias k="kubectl"
 #+end_src
 
 * Podman
-#+begin_src bash
+Back to using Docker Desktop. Getting errors when trying to use docker compose that I didn't feel like troubleshooting.
+#+begin_src bash :tangle no
 alias docker="podman"
 #+end_src
 
