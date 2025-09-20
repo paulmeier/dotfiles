@@ -85,4 +85,5 @@
   (package! lab) ;; Gitlab
   (package! impostman) ;; Postman importing
   (package! jinja2-mode) ;; jinja2 support
+  ;;(unpin! semgrep)
   )
