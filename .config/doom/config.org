@@ -29,6 +29,7 @@ sync' after modifying this file!
 - [[#programming][Programming]]
   - [[#typescript][Typescript]]
   - [[#python][Python]]
+  - [[#yaml][YAML]]
 - [[#packages][Packages]]
   - [[#drag-lines][Drag Lines]]
   - [[#verb][Verb]]
@@ -260,6 +261,17 @@ If non-nil, Dired tries to guess a default target directory.
 (setq jupyter-python-command "/opt/homebrew/bin/python3")
 #+end_src
 
+** YAML
+*** Disable format on save for yaml files
+#+begin_src elisp
+(defun my/disable-format-on-save-for-yaml ()
+  "Disable format on save for YAML files."
+  (when (or (string-equal (file-name-extension buffer-file-name) "yml")
+            (string-equal (file-name-extension buffer-file-name) "yaml"))
+    (setq +format-with nil)))
+
+(add-hook 'yaml-mode-hook #'my/disable-format-on-save-for-yaml)
+#+end_src
 
 * Packages
 Whenever you reconfigure a package, make sure to wrap your config in an
@@ -324,6 +336,7 @@ they are implemented.
   (add-hook 'denote-journal-extras-hook 'my-denote-tmr)
   :custom
   (denote-known-keywords '("journal" "active" "project"))
+  (denote-sort-keywords t)
   (denote-prompts '(subdirectory title keywords templates)))
   :config
   (setq denote-dired-directories
@@ -348,6 +361,7 @@ they are implemented.
        :desc "Insert Link" "i" #'denote-insert-link
        :desc "New Journal" "j" #'denote-journal-extras-new-or-existing-entry
        :desc "Find in Notes" "f" #'consult-notes-search-in-all-notes
+       :desc "Search with Xeft" "x" #'xeft
        :desc "Search Notes" "s" #'consult-notes))
 #+end_src
 
@@ -361,6 +375,15 @@ they are implemented.
     (consult-notes-denote-mode)))
   ;; search only for text files in denote dir
   ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
+#+end_src
+
+*** Xeft
+#+begin_src elisp
+(use-package! xeft
+    :after denote
+    :config
+    (setq xeft-directory (or (getenv "DENOTE_DIRECTORY") "~/Notes"))
+    (setq xeft-recursive t))
 #+end_src
 
 ** Copilot

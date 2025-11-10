@@ -55,6 +55,7 @@
 (package! valign)
 (package! centered-cursor-mode)
 (package! ob-mermaid)
+(package! org-timeblock)
 
 ;; HTTP
 (package! verb)
@@ -67,7 +68,10 @@
 (package! denote-menu)
 (package! consult-denote)
 (package! consult-notes)
-(package! obsidian)
+(package! xeft)
+
+;; Obsidian related
+;;(package! obsidian)
 
 ;; Programming Stuff
 (package! load-env-vars)
