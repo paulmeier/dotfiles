@@ -22,7 +22,7 @@
 ;; Emacs
 (package! valign)
 (package! centered-cursor-mode)
-(package! good-scroll)
+;;(package! good-scroll) ; already included in doom
 
 ;; HTTP
 (package! verb)
