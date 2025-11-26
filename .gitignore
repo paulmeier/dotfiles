@@ -67,6 +67,8 @@ flycheck_*.el
 # Zsh - Dont include work and require it to be built
 zshrc-work.sh
 zshrc-work.org
+zshrc-home.sh
+zshrc-home.org
 .zshrc
 
 # Home for now
