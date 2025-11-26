@@ -1,31 +1,102 @@
 * Headers
 #+begin_src elisp
-;; -*- lexical-binding: t; -*-
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+#+end_src
+
+* Low Level
+** Custom message handler
+This message handler will add the ~@@@~ prefix to any messages I provide.
+#+begin_src elisp
+(defun my-message (format-string &rest args)
+  "Display a personal message prefixed with @@@ in *Messages* buffer."
+  (apply #'message (concat "@@@ " format-string) args))
+#+end_src
+
+* Custom Functions
+** Add folder to load path
+#+begin_src elisp
+(defun my/add-to-load-path (path)
+  "Add PATH to `load-path` and log it using `my-message`."
+  (add-to-list 'load-path path)
+  (my-message "Added %s to load-path" path))
+#+end_src
+
+** Host machine location
+This function sets a variable that can be used for a conditional on home/work seperation.
+#+begin_src elisp
+(setq my-location
+      (cond
+       ((member system-name '("S427544")) "work")
+       ((member system-name '("MacBook-Pro.local")) "home")
+       (t "unknown")))
+(my-message "Current location: %s" my-location)
+#+end_src
+
+** Tangle all files in a specified directory
+#+begin_src elisp
+(defun my/tangle-org-files-in-directory (directory)
+  "Tangle all .org files in the specified DIRECTORY."
+  (interactive "DDirectory: ")
+  (let ((org-files (directory-files-recursively directory "\\.org\\'")))
+    (dolist (file org-files)
+      (my-message "Tangling %s..." file)
+      (org-babel-tangle-file file))))
+#+end_src
+
+** Org Babel Tangle Specific Config Files
+#+begin_src elisp
+(defun my/org-babel-tangle-on-save ()
+  "Auto-tangle specific Org files on save."
+  (when (and (string= (file-name-extension buffer-file-name) "org")
+             (member (file-name-nondirectory buffer-file-name)
+                     my/org-babel-tangle-files))
+    (org-babel-tangle)))
+
+(add-hook 'after-save-hook 'my/org-babel-tangle-on-save)
+#+end_src
+
+** Check formatter being used
+#+begin_src elisp
+(defun my/check-formatter-for-mode (mode)
+  "Check the formatter used for a specific MODE."
+  (interactive
+   (list (intern (completing-read "Mode: " obarray
+                                  (lambda (m)
+                                    (and (fboundp m)
+                                         (string-suffix-p "-mode" (symbol-name m))))
+                                  t))))
+  (with-temp-buffer
+    (funcall mode)
+    (message "Formatter for %s: %s" mode +format-with)))
 #+end_src
 
 * My Variables
+** Auto org babel tangle files
+List of Org files that should be auto-tangled on save.
 #+begin_src elisp
-(defvar my/org-babel-tangle-files '("zshrc.org")
-  "List of Org files that should be auto-tangled on save.")
+(setq my/org-babel-tangle-files '("zshrc.org" "my-home.org" "my-work.org"))
+#+end_src
+
+** Identity
+#+begin_src elisp
+(setq user-full-name "Paul Meier")
 #+end_src
 
 * Shared Modules
 #+begin_src elisp
-(add-to-list 'load-path "~/.config/doom/modules")
+(my/add-to-load-path "~/.config/doom/modules")
 #+end_src
 
 * Conditional Machine Loading
+This is for private code or anything that shouldn't be included in a public repo.
 #+begin_src elisp
-(cond
- ((member system-name '("S427544"))
-  (add-to-list 'load-path "~/.config/work")
-  (if (locate-library "my-work")
-      (require 'my-work)
-    (message "Warning: my-work.el not found.")))
- ((member system-name '("Pauls-MacBook-Air.local"))
-  (if (locate-library "my-mac")
-      (require 'my-mac)
-    (message "Warning: my-mac.el not found."))))
+(let ((config-dir (format "~/.config/%s" my-location))
+      (config-lib (format "my-%s" my-location)))
+  (add-to-list 'load-path config-dir)
+  (my-message "Added %s to load-path" config-dir)
+  (if (locate-library config-lib)
+      (require (intern config-lib))
+    (my-message "Warning: %s.el not found." config-lib)))
 #+end_src
 
 * Beautify Logo
@@ -39,9 +110,9 @@
 (use-package! drag-stuff
    :defer t
    :init
-  (map! "<M-up>"    #'drag-stuff-up
-        "<M-down>"  #'drag-stuff-down
-        "<M-left>"  #'drag-stuff-left
+  (map! "<M-up>" #'drag-stuff-up
+        "<M-down>" #'drag-stuff-down
+        "<M-left>" #'drag-stuff-left
         "<M-right>" #'drag-stuff-right))
 #+end_src
 
@@ -51,13 +122,6 @@
 ;;(setq compilation-scroll-output t)
 #+end_src
 
-** Good Scroll
-#+begin_src elisp
-(use-package! good-scroll
-  :config
-  (good-scroll-mode 1))
-#+end_src
-
 ** Full Screen
 #+begin_src elisp
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -65,7 +129,6 @@
 
 ** Fonts
 #+begin_src elisp
-;; Fonts
 ;; "SN Pro" "Roboto Mono" "Fira Code" "Noto Sans Symbols 2"
 (setq doom-font (font-spec :family "Fira Code" :size 15)
       doom-variable-pitch-font (font-spec :family "SN Pro" :size 15 :weight 'medium)
@@ -87,6 +150,18 @@
 If non-nil, Dired tries to guess a default target directory.
 #+begin_src elisp
 (setq dired-dwim-target t)
+#+end_src
+
+* Encryption
+#+begin_src elisp
+(after! epg
+  (setq epg-gpg-program "/usr/local/bin/gpg"
+        epg-pinentry-mode 'ask))
+
+(setq epa-file-encrypt-to '("30C3D13A0FBCC050")
+      epa-file-select-keys 'silent)
+
+(epa-file-enable)
 #+end_src
 
 * Org
@@ -119,11 +194,11 @@ Needs some cleanup :(
   (visual-fill-column-mode 1)
   (display-line-numbers-mode 0)
   (org-display-inline-images)
-  (setq org-agenda-files (list (or (getenv "ORG_AGENDA_FILES") "~/Org")))
-  (setq org-directory (or (getenv "ORG_DIRECTORY") "~/Org"))
-  (setq org-download-image-dir "./.attach")
   (setq evil-auto-indent nil)
-  (setq org-attach-id-dir "./.attach")
+  (setq org-attach-id-dir ".attach")
+  (setq org-attach-use-inheritance t)
+  (setq org-attach-store-link-p t)
+  (setq org-attach-dir-relative t)
   (setq org-image-actual-width nil)
   (setq visual-fill-column-center-text t)
   (setq org-log-into-drawer "LOGBOOK")
@@ -146,18 +221,6 @@ Needs some cleanup :(
         (verb . t)
         (ein . t)
         (typescript . t)))
-#+end_src
-
-** Org Babel Tangle Specific Config Files
-#+begin_src elisp
-(defun my/org-babel-tangle-on-save ()
-  "Auto-tangle specific Org files on save."
-  (when (and (string= (file-name-extension buffer-file-name) "org")
-             (member (file-name-nondirectory buffer-file-name)
-                     my/org-babel-tangle-files))
-    (org-babel-tangle)))
-
-(add-hook 'after-save-hook 'my/org-babel-tangle-on-save)
 #+end_src
 
 ** Org Create TODOs from block of lines
@@ -197,11 +260,6 @@ Always load Denote, I use notes everywhere
   :custom
   (denote-known-keywords '("journal" "active" "project"))
   (denote-prompts '(subdirectory title keywords templates)))
-  :config
-  (setq denote-dired-directories
-      (list (or (getenv "DENOTE_DIRED_DIRECTORIES") "~/Notes")))
-  (setq denote-directory (or (getenv "DENOTE_DIRECTORY") "~/Notes"))
-  (setq denote-journal-extras-directory (or (getenv "DENOTE_JOURNAL_EXTRAS_DIRECTORY") "~/Notes"))
 #+end_src
 
 ** Customize Denote
@@ -215,7 +273,7 @@ Always load Denote, I use notes everywhere
 ** Keybindings
 #+begin_src elisp
 (map! :leader
-      (:prefix ("d" . "denote")
+      (:prefix ("e" . "denote")
        :desc "New Note" "n" #'denote
        :desc "Insert Link" "i" #'denote-insert-link
        :desc "New Journal" "j" #'denote-journal-extras-new-or-existing-entry
@@ -224,80 +282,14 @@ Always load Denote, I use notes everywhere
 #+end_src
 
 ** Consult Notes
+Consult note dir sources is set in the machine specific profile.
 #+begin_src elisp
 (use-package! consult-notes
   :config
-  (setq consult-notes-file-dir-sources
-      (list (list "Notes" ?o (or (getenv "CONSULT_NOTES_FILE_DIR_SOURCES") "~/Notes"))))
   (when (locate-library "denote")
     (consult-notes-denote-mode)))
   ;; search only for text files in denote dir
   ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
-#+end_src
-
-** Project denote stuff
-#+begin_src elisp
-(defun my/denote-insert-category (category)
-  (save-excursion
-    (beginning-of-buffer)
-    (while (and
-            (< (point) (point-max))
-            (string= "#+"
-                    (buffer-substring-no-properties
-                     (point-at-bol)
-                     (+ (point-at-bol) 2))))
-      (next-line))
-
-    (insert "#+category: " category)
-    (save-buffer)))
-
-(defun my/denote-create-topic-note ()
-  (interactive)
-  (let* ((topic-files (mapcar (lambda (file)
-                                (cons (denote-retrieve-front-matter-title-value file 'org)
-                                      file))
-                              (denote-directory-files-matching-regexp "_kt")))
-         (selected-topic (completing-read "Select topic: "
-                                          (mapcar #'car topic-files))))
-
-    (denote (denote-title-prompt (format "%s: " selected-topic))
-            (denote-keywords-prompt))
-
-    ;(my/denote-insert-category selected-topic)
-    ))
-
-(defun my/denote-extract-subtree ()
-  (interactive)
-  (save-excursion
-    (if-let ((text (org-get-entry))
-             (heading (denote-link-ol-get-heading)))
-        (progn
-          (delete-region (org-entry-beginning-position)
-                         (save-excursion (org-end-of-subtree t) (point)))
-          (denote heading (denote-keywords-prompt) 'org)
-          (insert text)))))
-
-(defvar my/denote-keywords
-  '(("pra" . "Active Project")
-    ("prb" . "Backlogged Project")
-    ("prc" . "Closed Project")))
-
-(defun my/denote-custom-affixation (completions)
-  (mapcar (lambda (completion)
-            (list completion
-                  ""
-                  (alist-get completion
-                             my/denote-keywords
-                             nil
-                             nil
-                             #'string=)))
-          completions))
-
-(defun my/denote-keyword-prompt ()
-  (let ((completion-extra-properties
-         (list :affixation-function
-               #'my/denote-custom-affixation)))
-    (denote-keywords-prompt)))
 #+end_src
 
 * Copilot
@@ -319,33 +311,6 @@ Always load Denote, I use notes everywhere
        :desc "Buffer list" "b" #'copilot-chat-list
        :desc "Previous prompt history" "h" #'copilot-chat-prompt-history-previous
        :desc "Next prompt history" "n" #'copilot-chat-prompt-history-next))
-#+end_src
-
-* Custom Functions
-** Tangle all files in a specified directory
-#+begin_src elisp
-(defun my/tangle-org-files-in-directory (directory)
-  "Tangle all .org files in the specified DIRECTORY."
-  (interactive "DDirectory: ")
-  (let ((org-files (directory-files-recursively directory "\\.org\\'")))
-    (dolist (file org-files)
-      (message "Tangling %s..." file)
-      (org-babel-tangle-file file))))
-#+end_src
-
-** Check formatter being used
-#+begin_src elisp
-(defun my/check-formatter-for-mode (mode)
-  "Check the formatter used for a specific MODE."
-  (interactive
-   (list (intern (completing-read "Mode: " obarray
-                                  (lambda (m)
-                                    (and (fboundp m)
-                                         (string-suffix-p "-mode" (symbol-name m))))
-                                  t))))
-  (with-temp-buffer
-    (funcall mode)
-    (message "Formatter for %s: %s" mode +format-with)))
 #+end_src
 
 * YAS Snippets
@@ -371,12 +336,6 @@ Always load Denote, I use notes everywhere
 ;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
 ;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
 ;; (setq-hook! 'js-mode-hook +format-with 'standard)
-#+end_src
-
-* Python
-** Jupyter
-#+begin_src elisp :tangle no
-(setq jupyter-python-command "/opt/homebrew/bin/python3")
 #+end_src
 
 * Debug Emacs

@@ -4,12 +4,18 @@
 #+DESCRIPTION: Pauls personal Zsh config
 #+STARTUP: showeverything
 
-* Include Work Stuff
+* Work Stuff
+If running on work machine look for work specific stuff.
 #+begin_src bash :tangle (if (string-equal (system-name) "S427544") ".zshrc" "no")
 source "$HOME/zshrc-work.sh"
 #+end_src
 
-* Include Home Specific Stuff
+* Home Stuff
+if running on main home machine load home stuff.
+#+begin_src bash :tangle (if (string-equal (system-name) "Pauls-MacBook-Air.local") ".zshrc" "no")
+source "$HOME/zshrc-home.sh"
+#+end_src
+
 ** Guile
 #+begin_src bash :tangle (if (string-equal (system-name) "Pauls-MacBook-Air.local") ".zshrc" "no")
 export GUILE_LOAD_PATH="/opt/homebrew/share/guile/site/3.0"
@@ -43,7 +49,6 @@ export SAVEHIST=1000
 #+end_src
 
 * Shell
-Give the shell my likes/dislikes (I hope we are a good match)
 #+begin_src bash
 export EDITOR="emacs -nw"
 #+end_src
@@ -62,17 +67,10 @@ export PATH="$HOME/.config/emacs/bin:$PATH"
 #+end_src
 
 * Python
-** Aliases
 #+begin_src bash
 alias python='python3'
 alias pip='python3 -m pip'
 alias venv='python3 -m venv .venv'
-#+end_src
-
-** Location
-On Mac for applications that need 3.9
-#+begin_src bash
-export PATH="$HOME/Library/Python/3.9/bin:$PATH"
 #+end_src
 
 * NVM
@@ -102,31 +100,12 @@ export DOOMDIR="~/.config/doom"
 export PATH="/opt/homebrew/opt/grep/libexec/gnubin:$PATH"
 #+end_src
 
-* Docker
-For finding the docker cli binary.
-~Note: Not using right now because im using podman~
-#+begin_src bash :tangle no
-export PATH="$PATH:$HOME/.docker/bin"
-export PATH="$PATH:/Applications/Docker.app/Contents/Resources/bin/"
-#+end_src
-
-* Rancher Desktop
-~Note: Not tangling right now because im using Podman and Kind instead of RD~
-#+begin_src bash :tangle no
-export PATH="$PATH:$HOME/.rd/bin"
-#+end_src
-
 * Kubernetes
 #+begin_src bash
 alias k="kubectl"
 #+end_src
 
 * Podman
-#+begin_src bash
+#+begin_src bash :tangle no
 alias docker="podman"
-#+end_src
-
-* Jupyter
-#+begin_src bash
-alias jupyter="/opt/homebrew/bin/jupyter"
 #+end_src
