@@ -22,6 +22,7 @@ sync' after modifying this file!
 - [[#projectile][Projectile]]
 - [[#org][Org]]
   - [[#behavior][Behavior]]
+  - [[#org-timeblock][Org Timeblock]]
   - [[#org-babel-config][Org Babel Config]]
   - [[#org-babel-tangle-specific-config-files][Org Babel Tangle Specific Config Files]]
 - [[#dired][Dired]]
@@ -203,8 +204,15 @@ change `org-directory'. It must be set before org loads!
   :config (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
 #+end_src
 
+** Org Timeblock
+#+begin_src elisp
+(use-package! org-timeblock
+  :config
+  (setq org-timeblock-inbox-file "timeblock.org"))
+#+end_src
+
 ** Org Babel Config
-#+begin_src elisp :tangle no
+#+begin_src elisp
 (setq org-babel-load-languages
       '((emacs-lisp . t)
         (python . t)
