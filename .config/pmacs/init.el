@@ -1,3 +1,6 @@
+;; MAC specific modifiers
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier 'none)
 (org-babel-load-file
  (expand-file-name "config.org" user-emacs-directory))
 (custom-set-variables
