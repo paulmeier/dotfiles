@@ -22,7 +22,7 @@
 ;; Emacs
 (package! valign)
 (package! centered-cursor-mode)
-;;(package! good-scroll) ; already included in doom
+(package! org-timeblock)
 
 ;; HTTP
 (package! verb)
@@ -33,8 +33,13 @@
 (package! denote)
 (package! denote-org)
 (package! denote-menu)
+(package! denote-journal)
 (package! consult-denote)
 (package! consult-notes)
+(package! citar-denote)
+
+;; Writing Packages
+(package! olivetti)
 
 ;; Programming Stuff
 (package! load-env-vars)

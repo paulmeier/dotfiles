@@ -21,8 +21,9 @@
        ;;layout            ; auie,ctsrnm is the superior home row
 
        :completion
-       (company
-        +childframe)       ; the ultimate code completion backend
+       ;;(company
+       ;; +childframe)       ; the ultimate code completion backend
+       (corfu +orderless)  ; complete with cap(f), cape and a flying feather!
        ;;helm              ; the *other* search engine for love and life
        ;;ido               ; the other *other* search engine...
        ;;ivy               ; a search engine for love and life
@@ -36,7 +37,7 @@
        ;;(emoji +unicode)    ; 🙂
        hl-todo             ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        ;;hydra
-       indent-guides       ; highlighted indent columns
+       ;;indent-guides       ; highlighted indent columns
        ;;(ligatures
        ;; +extra)            ; ligatures and symbols to make your code pretty again
        ;;minimap             ; show a map of the code on the side
@@ -47,6 +48,7 @@
        (popup
         +all
         +defaults)         ; tame sudden yet inevitable temporary windows
+       smooth-scroll       ; So smooth you won't believe it's not butter
        ;;tabs              ; a tab bar for Emacs
        treemacs            ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
@@ -56,14 +58,14 @@
        (window-select
         +numbers)          ; visually switch windows
        workspaces          ; tab emulation, persistence & separate workspaces
-       ;;zen                 ; distraction-free coding or writing
+       zen                 ; distraction-free coding or writing
 
        :editor
        (evil +everywhere)  ; come to the dark side, we have cookies
        file-templates      ; auto-snippets for empty files
        fold                ; (nigh) universal code folding
-       (format
-        +onsave)           ; automated prettiness
+       ;;(format
+       ;; +onsave)         ; automated prettiness
        ;;god               ; run Emacs commands without modifier keys
        ;;lispy             ; vim for lisp, for people who don't like vim
        multiple-cursors    ; editing in many places at once
@@ -71,6 +73,9 @@
        ;;parinfer          ; turn lisp into python, sort of
        ;;rotate-text       ; cycle region at point between text candidates
        snippets            ; my elves. They type so I don't have to
+       (whitespace
+        +guess
+        +trim)             ; a butler for your whitespace
        word-wrap           ; soft wrapping with language-aware indent
 
        :emacs
@@ -79,6 +84,7 @@
        electric            ; smarter, keyword-based electric-indent
        (ibuffer
         +icons)            ; interactive buffer management
+       tramp               ; remote files at your arthritic fingertips
        undo                ; persistent, smarter undo for your inevitable mistakes
        vc                  ; version-control and Emacs, sitting in a tree
 
@@ -90,12 +96,12 @@
 
        :checkers
        (syntax +childframe)  ; tasing you for every semicolon you forget
-       ;;spell               ; tasing you for misspelling mispelling
-       ;;grammar             ; tasing grammar mistake every you make
+       spell               ; tasing you for misspelling mispelling
+       grammar             ; tasing grammar mistake every you make
 
        :tools
        ;;ansible
-       ;;biblio              ; Writes a PhD for you (citation needed)
+       biblio              ; Writes a PhD for you (citation needed)
        (debugger
         +lsp)              ; FIXME stepping through code, to help you add bugs
        ;;direnv
@@ -177,13 +183,15 @@
        ;;nix               ; I hereby declare "nix geht mehr!"
        ;;ocaml             ; an objective camel
        (org
+        +pretty
+        +crypt
+        +pomodoro
         +dragndrop
         +present
         +noter
         +pandoc
         +gnuplot
-        +journal
-        +pretty)           ; organize your plain life in plain text
+        +journal)          ; organize your plain life in plain text
        ;;php               ; perl's insecure younger brother
        ;;plantuml          ; diagrams for confusing people more
        ;;purescript        ; javascript, but functional
@@ -216,15 +224,15 @@
 
        :email
        ;;(mu4e +org +gmail)
-       ;;notmuch
+       notmuch
        ;;(wanderlust +gmail)
 
        :app
        calendar
-       ;;emms
-       ;;everywhere        ; *leave* Emacs!? You must be joking
-       ;;irc               ; how neckbeards socialize
-       ;;(rss +org)        ; emacs as an RSS reader
+       emms
+       ;;everywhere      ; *leave* Emacs!? You must be joking
+       irc               ; how neckbeards socialize
+       (rss +org)        ; emacs as an RSS reader
 
        :config
        literate

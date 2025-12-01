@@ -15,14 +15,15 @@ This message handler will add the ~@@@~ prefix to any messages I provide.
 * Custom Functions
 ** Add folder to load path
 #+begin_src elisp
-(defun my/add-to-load-path (path)
-  "Add PATH to `load-path` and log it using `my-message`."
-  (add-to-list 'load-path path)
-  (my-message "Added %s to load-path" path))
+(defun my/add-to-load-path (&rest paths)
+    "Add each PATH in PATHS to `load-path` and log them using `my-message`."
+  (dolist (path paths)
+    (add-to-list 'load-path path)
+    (my-message "Added %s to load-path" path)))
 #+end_src
 
 ** Host machine location
-This function sets a variable that can be used for a conditional on home/work seperation.
+This function sets a variable that can be used for a conditional on home/work separation.
 #+begin_src elisp
 (setq my-location
       (cond
@@ -70,6 +71,17 @@ This function sets a variable that can be used for a conditional on home/work se
     (message "Formatter for %s: %s" mode +format-with)))
 #+end_src
 
+** Get Org title
+#+begin_src elisp
+(defun my/org-title-slug ()
+  "Return a filesystem-safe slug based on #+title or buffer name."
+  (let* ((title (or (org-get-title)
+                    (file-name-base (or (buffer-file-name) "diagram"))))
+         (slug  (downcase
+                 (replace-regexp-in-string "[^[:alnum:]]+" "-" title))))
+    slug))
+#+end_src
+
 * My Variables
 ** Auto org babel tangle files
 List of Org files that should be auto-tangled on save.
@@ -85,6 +97,10 @@ List of Org files that should be auto-tangled on save.
 * Shared Modules
 #+begin_src elisp
 (my/add-to-load-path "~/.config/doom/modules")
+(require 'isbn-to-bibtex)
+(require 'my-book-cover)
+(require 'lit-mode)
+(require 'comfy-mode)
 #+end_src
 
 * Conditional Machine Loading
@@ -123,11 +139,19 @@ This is for private code or anything that shouldn't be included in a public repo
 #+end_src
 
 ** Full Screen
+Both options commented out are not working correctly on MAC
 #+begin_src elisp
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
+;; (add-hook 'window-setup-hook #'toggle-frame-maximized)
+(add-hook 'window-setup-hook #'toggle-frame-fullscreen)
 #+end_src
 
 ** Fonts
+To fix unicode boxes displaying for org mode bullets on a ~Macbook~ install this font.
+#+begin_src bash :tangle no
+brew install font-noto-sans-symbols-2
+#+end_src
+
 #+begin_src elisp
 ;; "SN Pro" "Roboto Mono" "Fira Code" "Noto Sans Symbols 2"
 (setq doom-font (font-spec :family "Fira Code" :size 15)
@@ -165,34 +189,10 @@ If non-nil, Dired tries to guess a default target directory.
 #+end_src
 
 * Org
-** Org View Mode
-To hide org markup when viewing a document.
-#+begin_src elisp
-;;(use-package! org-view-mode)
-#+end_src
-*** Map view
-Don't need this with dooms new +pretty setup
-#+begin_src elisp :tangle no
-(use-package! evil-org
-  :hook (org-mode . evil-org-mode)
-  :config
-  (map!
-   :map evil-org-mode-map
-   :localleader
-   :desc "View Toggle" "v" #'org-view-mode))
-#+end_src
-
 ** Org Setup
-Needs some cleanup :(
 #+begin_src elisp
 (defun my/org-mode-setup ()
-  (org-indent-mode)
-  (variable-pitch-mode 1)
-  (auto-fill-mode 0)
-  (valign-mode 1)
-  (visual-line-mode 1)
-  (visual-fill-column-mode 1)
-  (display-line-numbers-mode 0)
+  (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc")
   (org-display-inline-images)
   (setq evil-auto-indent nil)
   (setq org-attach-id-dir ".attach")
@@ -200,18 +200,15 @@ Needs some cleanup :(
   (setq org-attach-store-link-p t)
   (setq org-attach-dir-relative t)
   (setq org-image-actual-width nil)
-  (setq visual-fill-column-center-text t)
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-use-property-inheritance t))
 
-(use-package! org
-  :hook (org-mode . my/org-mode-setup)
-  :config (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
-#+end_src
+(after! org
+  (add-hook 'org-mode-hook #'my/org-mode-setup)
 
-** Org Babel Config
-#+begin_src elisp :tangle no
-(setq org-babel-load-languages
+  (org-babel-do-load-languages
+    'org-babel-load-languages
+    (append org-babel-load-languages
       '((emacs-lisp . t)
         (python . t)
         (shell . t)
@@ -220,7 +217,7 @@ Needs some cleanup :(
         (scheme . t)
         (verb . t)
         (ein . t)
-        (typescript . t)))
+        (typescript . t)))))
 #+end_src
 
 ** Org Create TODOs from block of lines
@@ -239,46 +236,65 @@ Needs some cleanup :(
     (beginning-of-line)))
 #+end_src
 
+** Org Timeblock
+#+begin_src elisp
+(use-package! org-timeblock
+  :config
+  (setq org-timeblock-inbox-file "timeblock.org"))
+#+end_src
+
 * Verb
 #+begin_src elisp
+(use-package! verb
+  :defer t
+  :config
+  (setq verb-suppress-load-unsecure-prelude-warning t)
+
+  (after! org
+    (define-key org-mode-map (kbd "C-c C-r") verb-command-map)))
+
 (map! :leader
       (:prefix ("v" . "verb")
        :desc "send request"
        "r" #'verb-send-request-on-point-other-window))
-(setq verb-suppress-load-unsecure-prelude-warning t)
 #+end_src
 
 * Denote
-Always load Denote, I use notes everywhere
 ** Use Package
 #+begin_src elisp
 (use-package! denote
-  :init
-  ;; (require 'denote-journal-extras)
-  (add-hook 'denote-after-new-note-hook #'project-and-active-to-agenda)
-  (add-hook 'denote-journal-extras-hook 'my-denote-tmr)
   :custom
-  (denote-known-keywords '("journal" "active" "project"))
-  (denote-prompts '(subdirectory title keywords templates)))
-#+end_src
-
-** Customize Denote
-#+begin_src elisp
-(unless (boundp 'denote-templates)
-    (setq denote-templates '()))
-;; (setq denote-file-type "markdown-yaml")
-(push '(journal . "\n\n* Daily Journal\n\n") denote-templates)
+  (denote-directory "~/Sync/paul-notes-org")
+  (denote-directories '("~/Sync/paul-notes-org"))
+  (denote-prompts '(subdirectory title keywords template)))
 #+end_src
 
 ** Keybindings
+*** Denote Keybindings
 #+begin_src elisp
 (map! :leader
       (:prefix ("e" . "denote")
        :desc "New Note" "n" #'denote
        :desc "Insert Link" "i" #'denote-insert-link
-       :desc "New Journal" "j" #'denote-journal-extras-new-or-existing-entry
+       :desc "Journal" "j" #'denote-journal-new-or-existing-entry
        :desc "Find in Notes" "f" #'consult-notes-search-in-all-notes
        :desc "Search Notes" "s" #'consult-notes))
+#+end_src
+
+*** Expand Org Source Block Keybindings
+#+begin_src elisp
+(map! :leader
+      :desc "Expand Org source block"
+      "y b" #'org-babel-expand-src-block)
+#+end_src
+
+*** Lit Minor Mode Keybindings
+#+begin_src elisp
+(map! :leader
+      :desc "Toggle lit mode"
+      "t W" #'lit-mode
+      :desc "Toggle comfy mode"
+      "t C" #'comfy-mode)
 #+end_src
 
 ** Consult Notes
@@ -291,6 +307,31 @@ Consult note dir sources is set in the machine specific profile.
   ;; search only for text files in denote dir
   ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
 #+end_src
+
+** Denote Journal
+#+begin_src elisp
+(use-package! denote-journal
+  :after denote
+  :commands (denote-journal-new-entry
+             denote-journal-new-or-existing-entry
+             denote-journal-link-or-create-entry)
+  :hook (calendar-mode . denote-journal-calendar-mode)
+  :config
+  ;; Put journal files under ~/Sync/paul-notes-org/journal
+  ;; (default is a "journal" subdir of `denote-directory`).
+  (setq denote-journal-directory
+        (expand-file-name "journal" denote-directory))
+
+  ;; Default keyword in the filename for journal entries.
+  (setq denote-journal-keyword "journal")
+
+  ;; How titles are generated, e.g. "Tuesday 1 April 2025".
+  (setq denote-journal-title-format 'day-date-month-year)
+
+  ;; How often `new-or-existing` groups entries: daily/weekly/monthly/yearly.
+  (setq denote-journal-interval 'daily))
+#+end_src
+
 
 * Copilot
 ** Copilot Keybindings
@@ -336,6 +377,36 @@ Consult note dir sources is set in the machine specific profile.
 ;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
 ;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
 ;; (setq-hook! 'js-mode-hook +format-with 'standard)
+#+end_src
+
+* Citar
+#+begin_src elisp
+(use-package! citar
+  :defer t
+  :custom
+  ;; Your bibliography file
+  (citar-bibliography '("~/Sync/paul-references-org/references.bib"))
+
+  ;; Optional: where your PDFs are stored
+  (citar-library-paths '("~/Sync/paul-references-org/library"))
+
+  ;; Optional: where notes live (before Citar-Denote)
+  (citar-notes-paths '("~/Sync/paul-notes-org/literature"))
+
+  ;; This makes Citar the default Org-cite processor
+  (org-cite-activate-processor 'citar)
+
+  ;; Use Citar for citation insertion UI
+  (org-cite-insert-processor 'citar)
+
+  ;; Use Citar for following citations (open note / bib entry / URL)
+  (org-cite-follow-processor 'citar)
+
+  ;; For export: Citar integrates with CSL
+  (org-cite-export-processors
+   '((html . (csl "chicago-author-date.csl"))
+     (latex . biblatex)
+     (t . (csl "chicago-author-date.csl")))))
 #+end_src
 
 * Debug Emacs
