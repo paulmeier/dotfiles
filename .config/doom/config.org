@@ -142,8 +142,8 @@ This is for private code or anything that shouldn't be included in a public repo
 Both options commented out are not working correctly on MAC
 #+begin_src elisp
 ;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-;; (add-hook 'window-setup-hook #'toggle-frame-maximized)
-(add-hook 'window-setup-hook #'toggle-frame-fullscreen)
+(add-hook 'window-setup-hook #'toggle-frame-maximized)
+;;(add-hook 'window-setup-hook #'toggle-frame-fullscreen)
 #+end_src
 
 ** Fonts
@@ -262,11 +262,7 @@ If non-nil, Dired tries to guess a default target directory.
 * Denote
 ** Use Package
 #+begin_src elisp
-(use-package! denote
-  :custom
-  (denote-directory "~/Sync/paul-notes-org")
-  (denote-directories '("~/Sync/paul-notes-org"))
-  (denote-prompts '(subdirectory title keywords template)))
+(use-package! denote)
 #+end_src
 
 ** Keybindings
