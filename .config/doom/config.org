@@ -1,62 +1,211 @@
-* Headers
+#+title: Paul's Doom Config
+#+startup: overview
+#+property: header-args:elisp :tangle config.el
+
+* About                                                                  :doc:
+This is the literate source for Doom's =$DOOMDIR/config.el=. Editing this
+file and saving will trigger Doom's =:config literate= module to tangle it.
+
+** Layout
+- ~$DOOMDIR/init.el~      :: Doom modules.
+- ~$DOOMDIR/packages.el~  :: Package declarations.
+- ~$DOOMDIR/config.org~   :: This file. *Public.*
+- ~$DOOMDIR/config.el~    :: Tangled output of this file. *Gitignored.*
+- ~$DOOMDIR/local.el~     :: Per-machine settings (paths, mail address,
+                             GPG key, opt-in features). *Gitignored* —
+                             never committed. See [[*Per-machine config (=local.el=)][Per-machine config]].
+- ~$DOOMDIR/modules/~     :: Custom local modules.
+
+** Bootstrapping a new machine
+1. Clone dotfiles, ~doom sync~.
+2. Start Emacs. It will warn that =local.el= is missing.
+3. ~M-x my/write-local-template~ — scaffolds =local.el= with every
+   expected variable set to a blank default.
+4. Edit =local.el=, fill in the paths/keys for this machine, restart.
+
+* Header
 #+begin_src elisp
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 #+end_src
 
-* Low Level
-** Custom message handler
-This message handler will add the ~@@@~ prefix to any messages I provide.
+* Helpers
+** Logging
+Prefixed with =@@@= so my own messages stand out in =*Messages*=.
 #+begin_src elisp
 (defun my-message (format-string &rest args)
   "Display a personal message prefixed with @@@ in *Messages* buffer."
   (apply #'message (concat "@@@ " format-string) args))
 #+end_src
 
-* Custom Functions
-** Add folder to load path
+** Misc utilities
 #+begin_src elisp
 (defun my/add-to-load-path (&rest paths)
-    "Add each PATH in PATHS to `load-path` and log them using `my-message`."
+  "Add each PATH in PATHS to `load-path` and log it."
   (dolist (path paths)
     (add-to-list 'load-path path)
     (my-message "Added %s to load-path" path)))
+
+(defun my/non-empty (s)
+  "Return S if it's a non-empty string, otherwise nil."
+  (and (stringp s) (not (string-empty-p s)) s))
 #+end_src
 
-** Host machine location
-This function sets a variable that can be used for a conditional on home/work separation.
+* Per-machine config (=local.el=)
+Anything that varies between machines or shouldn't be in a public repo
+(absolute paths, mail address, GPG key id, opt-in feature flags) lives
+in =$DOOMDIR/local.el=. That file is gitignored.
+
+The list ~my/local-vars~ below is the *single source of truth* for what
+=local.el= contains. To add a new per-machine knob, append an entry here
+and reference the variable from elsewhere in =config.org=. Empty-string
+or nil values are treated as "feature off" by the consumers below.
+
+** Variable schema
 #+begin_src elisp
-(setq my-location
-      (cond
-       ((member system-name '("S427544")) "work")
-       ((member system-name '("MacBook-Pro.local")) "home")
-       (t "unknown")))
-(my-message "Current location: %s" my-location)
+(defvar my/local-vars
+  '((my-location              ""    "Free-form label for this machine, e.g. \"home\" or \"work\".")
+    (user-mail-address        ""    "Mail address used by Emacs (org-capture, magit commits via git config, etc.).")
+    (my/notes-directory       ""    "Root of denote/consult-notes. Example: \"~/Sync/notes\".")
+    (my/org-directory         ""    "Value for `org-directory'. Example: \"~/Sync/org\".")
+    (my/org-extra-agenda-files nil  "Extra dirs/files appended to `org-agenda-files' beyond `my/org-directory'. List of strings.")
+    (my/references-bib        ""    "Path to references.bib for citar/bibtex.")
+    (my/references-library    ""    "Directory containing PDFs etc. for citar.")
+    (my/projects-directory    ""    "Projectile project search root. Example: \"~/Projects\".")
+    (my/snippets-directory    ""    "Path to doom-snippets clone. Example: \"~/Projects/snippets\".")
+    (my/elfeed-org-file       ""    "Path to elfeed-org feeds file.")
+    (my/gpg-program           ""    "Absolute path to gpg binary, e.g. \"/opt/homebrew/bin/gpg\".")
+    (my/gpg-key-id            ""    "GPG key id used as recipient for `epa-file-encrypt-to'.")
+    (my/mermaid-cli           ""    "Absolute path to mmdc, e.g. \"/opt/homebrew/bin/mmdc\".")
+    (my/local-features        nil  "List of opt-in feature symbols, e.g. (gitlab postman). Consumed by packages.el and elsewhere."))
+  "Schema for `local.el'. Each entry is (SYMBOL DEFAULT DOCSTRING).
+`my/write-local-template' uses this to generate a blank skeleton.")
 #+end_src
 
-** Tangle all files in a specified directory
+** Template generator
+=M-x my/write-local-template= scaffolds a blank =local.el=. If one already
+exists, it writes to =local.el.template= instead so existing values aren't
+clobbered — merge by hand.
 #+begin_src elisp
-(defun my/tangle-org-files-in-directory (directory)
-  "Tangle all .org files in the specified DIRECTORY."
-  (interactive "DDirectory: ")
-  (let ((org-files (directory-files-recursively directory "\\.org\\'")))
-    (dolist (file org-files)
-      (my-message "Tangling %s..." file)
-      (org-babel-tangle-file file))))
+(defun my/local-file ()
+  "Path to the per-machine local.el."
+  (expand-file-name "local.el" doom-user-dir))
+
+(defun my/write-local-template (&optional force)
+  "Write a blank `local.el' scaffold derived from `my/local-vars'.
+If `local.el' already exists and FORCE (prefix arg) is nil, write to
+`local.el.template' instead so existing settings aren't lost."
+  (interactive "P")
+  (let* ((target (my/local-file))
+         (out (if (and (file-exists-p target) (not force))
+                  (concat target ".template")
+                target)))
+    (with-temp-file out
+      (insert ";;; local.el --- Per-machine settings -*- lexical-binding: t; -*-\n")
+      (insert ";;\n")
+      (insert ";; This file is gitignored. Fill in values for this machine.\n")
+      (insert ";; Empty string \"\" or nil means \"feature off on this machine\".\n")
+      (insert ";; Schema is defined by `my/local-vars' in config.org.\n\n")
+      (dolist (entry my/local-vars)
+        (let ((sym (nth 0 entry))
+              (default (nth 1 entry))
+              (doc (nth 2 entry)))
+          (when doc (insert (format ";; %s\n" doc)))
+          (insert (format "(setq %s %S)\n\n" sym default))))
+      (insert "(provide 'local)\n"))
+    (message "Wrote %s" out)
+    out))
 #+end_src
 
-** Org Babel Tangle Specific Config Files
+** Loading =local.el=
+Loaded early so subsequent blocks can see the variables. If absent, we
+~setq~ each var to its default and warn — Emacs still starts up usable.
 #+begin_src elisp
-(defun my/org-babel-tangle-on-save ()
-  "Auto-tangle specific Org files on save."
-  (when (and (string= (file-name-extension buffer-file-name) "org")
-             (member (file-name-nondirectory buffer-file-name)
-                     my/org-babel-tangle-files))
-    (org-babel-tangle)))
+(dolist (entry my/local-vars)
+  (let ((sym (nth 0 entry))
+        (default (nth 1 entry)))
+    (unless (boundp sym)
+      (set sym default))))
 
-(add-hook 'after-save-hook 'my/org-babel-tangle-on-save)
+(let ((local-file (my/local-file)))
+  (if (file-exists-p local-file)
+      (load local-file nil 'nomessage)
+    (my-message "No local.el found at %s. Run M-x my/write-local-template" local-file)))
+
+(my-message "Current location: %s" (or (my/non-empty my-location) "unknown"))
 #+end_src
 
-** Check formatter being used
+* Identity
+=user-mail-address= is set via =local.el=.
+#+begin_src elisp
+(setq user-full-name "Paul Meier")
+#+end_src
+
+* Custom modules
+Local Elisp modules live under =$DOOMDIR/modules=.
+#+begin_src elisp
+(my/add-to-load-path (expand-file-name "modules" doom-user-dir))
+(require 'isbn-to-bibtex)
+(require 'my-book-cover)
+(require 'lit-mode)
+(require 'comfy-mode)
+#+end_src
+
+* UI
+** Splash
+#+begin_src elisp
+(setq fancy-splash-image (concat doom-user-dir "alfie.png"))
+#+end_src
+
+** Fonts
+~Noto Sans Symbols 2~ fixes unicode boxes for org bullets:
+#+begin_src bash :tangle no
+brew install font-noto-sans-symbols-2
+#+end_src
+
+#+begin_src elisp
+(setq doom-font (font-spec :family "Fira Code" :size 15)
+      doom-variable-pitch-font (font-spec :family "SN Pro" :size 15 :weight 'medium)
+      doom-big-font (font-spec :family "Fira Code" :size 24))
+#+end_src
+
+** Frame
+Start maximized. The full-screen toggles are commented because they
+don't behave well on macOS.
+#+begin_src elisp
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(undecorated . t))
+#+end_src
+
+** Modeline
+#+begin_src elisp
+(display-battery-mode 1)
+#+end_src
+
+** Quiet warnings
+#+begin_src elisp
+(setq warning-minimum-level :emergency)
+#+end_src
+
+* Editor
+** Drag lines with M-arrows
+#+begin_src elisp
+(use-package! drag-stuff
+  :defer t
+  :init
+  (map! "<M-up>"    #'drag-stuff-up
+        "<M-down>"  #'drag-stuff-down
+        "<M-left>"  #'drag-stuff-left
+        "<M-right>" #'drag-stuff-right))
+#+end_src
+
+** Formatters
+#+begin_src elisp
+(setq-hook! 'javascript-mode-hook     +format-with 'prettier)
+(setq-hook! 'typescript-mode-hook     +format-with 'prettier)
+(setq-hook! 'typescript-tsx-mode-hook +format-with 'prettier)
+#+end_src
+
+** Inspect formatter for a mode
 #+begin_src elisp
 (defun my/check-formatter-for-mode (mode)
   "Check the formatter used for a specific MODE."
@@ -71,128 +220,47 @@ This function sets a variable that can be used for a conditional on home/work se
     (message "Formatter for %s: %s" mode +format-with)))
 #+end_src
 
-** Get Org title
-#+begin_src elisp
-(defun my/org-title-slug ()
-  "Return a filesystem-safe slug based on #+title or buffer name."
-  (let* ((title (or (org-get-title)
-                    (file-name-base (or (buffer-file-name) "diagram"))))
-         (slug  (downcase
-                 (replace-regexp-in-string "[^[:alnum:]]+" "-" title))))
-    slug))
-#+end_src
-
-* My Variables
-** Auto org babel tangle files
-List of Org files that should be auto-tangled on save.
-#+begin_src elisp
-(setq my/org-babel-tangle-files '("zshrc.org" "my-home.org" "my-work.org"))
-#+end_src
-
-** Identity
-#+begin_src elisp
-(setq user-full-name "Paul Meier")
-#+end_src
-
-* Shared Modules
-#+begin_src elisp
-(my/add-to-load-path "~/.config/doom/modules")
-(require 'isbn-to-bibtex)
-(require 'my-book-cover)
-(require 'lit-mode)
-(require 'comfy-mode)
-#+end_src
-
-* Conditional Machine Loading
-This is for private code or anything that shouldn't be included in a public repo.
-#+begin_src elisp
-(let ((config-dir (format "~/.config/%s" my-location))
-      (config-lib (format "my-%s" my-location)))
-  (add-to-list 'load-path config-dir)
-  (my-message "Added %s to load-path" config-dir)
-  (if (locate-library config-lib)
-      (require (intern config-lib))
-    (my-message "Warning: %s.el not found." config-lib)))
-#+end_src
-
-* Beautify Logo
-#+begin_src elisp
-(setq fancy-splash-image (concat doom-private-dir "alfie.png"))
-#+end_src
-
-* Editor
-** Drag Lines
-#+begin_src elisp
-(use-package! drag-stuff
-   :defer t
-   :init
-  (map! "<M-up>" #'drag-stuff-up
-        "<M-down>" #'drag-stuff-down
-        "<M-left>" #'drag-stuff-left
-        "<M-right>" #'drag-stuff-right))
-#+end_src
-
-** Emergency log messages only
-#+begin_src elisp
-(setq warning-minimum-level :emergency)
-;;(setq compilation-scroll-output t)
-#+end_src
-
-** Full Screen
-Both options commented out are not working correctly on MAC
-#+begin_src elisp
-;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-;; (add-hook 'window-setup-hook #'toggle-frame-maximized)
-(add-hook 'window-setup-hook #'toggle-frame-fullscreen)
-#+end_src
-
-** Fonts
-To fix unicode boxes displaying for org mode bullets on a ~Macbook~ install this font.
-#+begin_src bash :tangle no
-brew install font-noto-sans-symbols-2
-#+end_src
-
-#+begin_src elisp
-;; "SN Pro" "Roboto Mono" "Fira Code" "Noto Sans Symbols 2"
-(setq doom-font (font-spec :family "Fira Code" :size 15)
-      doom-variable-pitch-font (font-spec :family "SN Pro" :size 15 :weight 'medium)
-      doom-big-font (font-spec :family "Fira Code" :size 24))
-#+end_src
-
-** Modeline
-#+begin_src elisp
-(display-battery-mode 1)
-#+end_src
-
-* Projectile
-#+begin_src elisp
-(setq projectile-project-search-path '("~/Projects"))
-#+end_src
-
-* Dired
-** Configure Default Directory
-If non-nil, Dired tries to guess a default target directory.
-#+begin_src elisp
-(setq dired-dwim-target t)
-#+end_src
-
 * Encryption
+=epg-gpg-program= and the recipient key come from =local.el=.
 #+begin_src elisp
 (after! epg
-  (setq epg-gpg-program "/usr/local/bin/gpg"
-        epg-pinentry-mode 'ask))
+  (when (my/non-empty my/gpg-program)
+    (setq epg-gpg-program my/gpg-program))
+  (setq epg-pinentry-mode 'ask))
 
-(setq epa-file-encrypt-to '("30C3D13A0FBCC050")
-      epa-file-select-keys 'silent)
+(when (my/non-empty my/gpg-key-id)
+  (setq epa-file-encrypt-to (list my/gpg-key-id)
+        epa-file-select-keys 'silent))
 
 (epa-file-enable)
 #+end_src
 
+* Tools
+** Projectile
+#+begin_src elisp
+(when (my/non-empty my/projects-directory)
+  (setq projectile-project-search-path (list my/projects-directory)))
+#+end_src
+
+** Dired
+#+begin_src elisp
+(setq dired-dwim-target t)
+#+end_src
+
+** YAS Snippets
+#+begin_src elisp
+(use-package! doom-snippets
+  :when (my/non-empty my/snippets-directory)
+  :load-path (lambda () (list my/snippets-directory))
+  :after yasnippet)
+#+end_src
+
 * Org
-** Org Setup
+** Setup
 #+begin_src elisp
 (defun my/org-mode-setup ()
-  (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc")
+  (when (my/non-empty my/mermaid-cli)
+    (setq ob-mermaid-cli-path my/mermaid-cli))
   (org-display-inline-images)
   (setq evil-auto-indent nil)
   (setq org-attach-id-dir ".attach")
@@ -206,109 +274,157 @@ If non-nil, Dired tries to guess a default target directory.
 (after! org
   (add-hook 'org-mode-hook #'my/org-mode-setup)
 
+  (when (my/non-empty my/org-directory)
+    (setq org-directory my/org-directory)
+    (setq org-agenda-files (cons my/org-directory
+                                 (or my/org-extra-agenda-files '()))))
+
   (org-babel-do-load-languages
-    'org-babel-load-languages
-    (append org-babel-load-languages
-      '((emacs-lisp . t)
-        (python . t)
-        (shell . t)
-        (js . t)
-        (mermaid . t)
-        (scheme . t)
-        (verb . t)
-        (ein . t)
-        (typescript . t)))))
+   'org-babel-load-languages
+   (append org-babel-load-languages
+           '((emacs-lisp . t)
+             (python     . t)
+             (shell      . t)
+             (js         . t)
+             (mermaid    . t)
+             (scheme     . t)
+             (verb       . t)
+             (ein        . t)
+             (typescript . t)))))
 #+end_src
 
-** Org Create TODOs from block of lines
+** Helper: convert lines to checkboxes
 #+begin_src elisp
 (defun org-set-line-checkbox (arg)
   (interactive "P")
   (let ((n (or arg 1)))
     (when (region-active-p)
-      (setq n (count-lines (region-beginning)
-                           (region-end)))
+      (setq n (count-lines (region-beginning) (region-end)))
       (goto-char (region-beginning)))
-    (dotimes (i n)
+    (dotimes (_ n)
       (beginning-of-line)
       (insert "- [ ] ")
       (forward-line))
     (beginning-of-line)))
 #+end_src
 
-** Org Timeblock
+** Helper: filename-safe slug from #+title
+#+begin_src elisp
+(defun my/org-title-slug ()
+  "Return a filesystem-safe slug based on #+title or buffer name."
+  (let* ((title (or (org-get-title)
+                    (file-name-base (or (buffer-file-name) "diagram"))))
+         (slug  (downcase
+                 (replace-regexp-in-string "[^[:alnum:]]+" "-" title))))
+    slug))
+#+end_src
+
+** Org-timeblock
 #+begin_src elisp
 (use-package! org-timeblock
   :config
   (setq org-timeblock-inbox-file "timeblock.org"))
 #+end_src
 
-* Verb
+** Babel auto-tangle for selected files
+Saves of files whose basename is in =my/org-babel-tangle-files= will
+auto-tangle (e.g. =zshrc.org=).
 #+begin_src elisp
-(use-package! verb
-  :defer t
-  :config
-  (setq verb-suppress-load-unsecure-prelude-warning t)
+(setq my/org-babel-tangle-files '("zshrc.org"))
 
-  (after! org
-    (define-key org-mode-map (kbd "C-c C-r") verb-command-map)))
+(defun my/tangle-org-files-in-directory (directory)
+  "Tangle all .org files in DIRECTORY."
+  (interactive "DDirectory: ")
+  (dolist (file (directory-files-recursively directory "\\.org\\'"))
+    (my-message "Tangling %s..." file)
+    (org-babel-tangle-file file)))
 
-(map! :leader
-      (:prefix ("v" . "verb")
-       :desc "send request"
-       "r" #'verb-send-request-on-point-other-window))
+(defun my/org-babel-tangle-on-save ()
+  "Auto-tangle if current file's basename is in `my/org-babel-tangle-files'."
+  (when (and (string= (file-name-extension buffer-file-name) "org")
+             (member (file-name-nondirectory buffer-file-name)
+                     my/org-babel-tangle-files))
+    (org-babel-tangle)))
+
+(add-hook 'after-save-hook #'my/org-babel-tangle-on-save)
 #+end_src
 
-* Denote
-** Use Package
-#+begin_src elisp
-(use-package! denote
-  :custom
-  (denote-directory "~/Sync/paul-notes-org")
-  (denote-directories '("~/Sync/paul-notes-org"))
-  (denote-prompts '(subdirectory title keywords template)))
-#+end_src
-
-** Keybindings
-*** Denote Keybindings
-#+begin_src elisp
-(map! :leader
-      (:prefix ("e" . "denote")
-       :desc "New Note" "n" #'denote
-       :desc "Insert Link" "i" #'denote-insert-link
-       :desc "Journal" "j" #'denote-journal-new-or-existing-entry
-       :desc "Find in Notes" "f" #'consult-notes-search-in-all-notes
-       :desc "Search Notes" "s" #'consult-notes))
-#+end_src
-
-*** Expand Org Source Block Keybindings
+** Keybinding: expand src block
 #+begin_src elisp
 (map! :leader
       :desc "Expand Org source block"
       "y b" #'org-babel-expand-src-block)
 #+end_src
 
-*** Lit Minor Mode Keybindings
+* Notes
+** Denote
+#+begin_src elisp
+(use-package! denote
+  :config
+  (when (my/non-empty my/notes-directory)
+    (setq denote-directory          my/notes-directory
+          denote-directories        (list my/notes-directory)
+          denote-dired-directories  (list my/notes-directory)))
+  (setq denote-prompts '(subdirectory title keywords template)))
+#+end_src
+
+** Denote keybindings
 #+begin_src elisp
 (map! :leader
-      :desc "Toggle lit mode"
-      "t W" #'lit-mode
-      :desc "Toggle comfy mode"
-      "t C" #'comfy-mode)
+      (:prefix ("e" . "denote")
+       :desc "New Note"        "n" #'denote
+       :desc "Insert Link"     "i" #'denote-insert-link
+       :desc "Journal"         "j" #'denote-journal-new-or-existing-entry
+       :desc "Find in Notes"   "f" #'consult-notes-search-in-all-notes
+       :desc "Search Notes"    "s" #'consult-notes))
+
+(map! :leader
+      :desc "Toggle lit mode"   "t W" #'lit-mode
+      :desc "Toggle comfy mode" "t C" #'comfy-mode)
 #+end_src
 
-** Consult Notes
-Consult note dir sources is set in the machine specific profile.
+** Denote templates
+=denote-templates= references functions defined here. The functions
+read template bodies from files inside =my/notes-directory=.
 #+begin_src elisp
-(use-package! consult-notes
-  :config
-  (when (locate-library "denote")
-    (consult-notes-denote-mode)))
-  ;; search only for text files in denote dir
-  ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
+(defun my/denote-template-from-file (filename)
+  "Return contents of FILENAME (relative to `denote-directory`)."
+  (with-temp-buffer
+    (insert-file-contents
+     (expand-file-name filename denote-directory))
+    (buffer-string)))
+
+(defun my/denote-template-non-fiction-book ()
+  (my/denote-template-from-file "literature/templates/book-non-fiction.org"))
+
+(defun my/denote-template-fiction-book ()
+  (my/denote-template-from-file "literature/templates/book-fiction.org"))
+
+(defun my/denote-template-article ()
+  (my/denote-template-from-file "literature/templates/article.org"))
+
+(defun my/denote-template-paper ()
+  (my/denote-template-from-file "literature/templates/paper.org"))
+
+(defun my/denote-journal-daily ()
+  "Daily Journal note."
+  (my/denote-template-from-file "templates/journal-daily.org"))
+
+(defun my/denote-template-generic ()
+  "Empty generic template."
+  "")
+
+(after! denote
+  (setq denote-templates
+        '((non-fiction-book . my/denote-template-non-fiction-book)
+          (fiction-book     . my/denote-template-fiction-book)
+          (article          . my/denote-template-article)
+          (paper            . my/denote-template-paper)
+          (daily            . my/denote-journal-daily)
+          (generic          . my/denote-template-generic))))
 #+end_src
 
-** Denote Journal
+** Denote journal
 #+begin_src elisp
 (use-package! denote-journal
   :after denote
@@ -317,99 +433,130 @@ Consult note dir sources is set in the machine specific profile.
              denote-journal-link-or-create-entry)
   :hook (calendar-mode . denote-journal-calendar-mode)
   :config
-  ;; Put journal files under ~/Sync/paul-notes-org/journal
-  ;; (default is a "journal" subdir of `denote-directory`).
-  (setq denote-journal-directory
-        (expand-file-name "journal" denote-directory))
-
-  ;; Default keyword in the filename for journal entries.
-  (setq denote-journal-keyword "journal")
-
-  ;; How titles are generated, e.g. "Tuesday 1 April 2025".
-  (setq denote-journal-title-format 'day-date-month-year)
-
-  ;; How often `new-or-existing` groups entries: daily/weekly/monthly/yearly.
-  (setq denote-journal-interval 'daily))
+  (setq denote-journal-directory   (expand-file-name "journal" denote-directory)
+        denote-journal-keyword     "journal"
+        denote-journal-title-format 'day-date-month-year
+        denote-journal-interval    'daily))
 #+end_src
 
-
-* Copilot
-** Copilot Keybindings
+** Consult-notes
 #+begin_src elisp
-(map! :leader
-      (:prefix ("l" . "co-chat")
-       :desc "Chat Prompt" "p" #'copilot-chat-prompt
-       :desc "Reset" "r" #'copilot-chat-reset
-       :desc "Chat buffers" "d" #'copilot-chat-display
-       :desc "Explain selected" "e" #'copilot-chat-explain
-       :desc "Review selected" "v" #'copilot-chat-review
-       :desc "Document selected" "c" #'copilot-chat-doc
-       :desc "Fix selected" "f" #'copilot-chat-fix
-       :desc "Optimize selected" "o" #'copilot-chat-optimize
-       :desc "Write tests for selected" "t" #'copilot-chat-test
-       :desc "Custom prompt with selection" "p" #'copilot-chat-custom-prompt-selection
-       :desc "Current buffer to copilot chat" "s" #'copilot-chat-add-current-buffer
-       :desc "Buffer list" "b" #'copilot-chat-list
-       :desc "Previous prompt history" "h" #'copilot-chat-prompt-history-previous
-       :desc "Next prompt history" "n" #'copilot-chat-prompt-history-next))
+(use-package! consult-notes
+  :config
+  (when (my/non-empty my/notes-directory)
+    (setq consult-notes-file-dir-sources
+          `(("Notes" ?o ,my/notes-directory))))
+  (when (locate-library "denote")
+    (consult-notes-denote-mode)))
 #+end_src
 
-* YAS Snippets
-#+begin_src elisp
-(use-package! doom-snippets
-  :load-path "~/Projects/snippets"
-  :after yasnippet)
-#+end_src
-
-* Typescript
-#+begin_src elisp
-;; (setq-hook! 'javascript-mode-hook +format-with-lsp t)
-;; (setq-hook! 'javascript-mode-hook +format-with 'prettier)
-(setq-hook! 'javascript-mode-hook +format-with 'prettier)
-(setq-hook! 'typescript-mode-hook +format-with 'prettier)
-(setq-hook! 'typescript-tsx-mode-hook +format-with 'prettier)
-;; (setq-hook! 'javascript-mode-hook +format-with 'eslint)
-;; (setq-hook! 'typescript-mode-hook +format-with 'standard)
-;; (setq-hook! 'javascript-mode-hook +format-with :none)
-;; (setq typescript-indent-level 2)
-;; Use standard-js
-;; (setq-hook! 'js2-jsx-mode-hook +format-with 'standard)
-;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
-;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
-;; (setq-hook! 'js-mode-hook +format-with 'standard)
-#+end_src
-
-* Citar
+** Citar
 #+begin_src elisp
 (use-package! citar
   :defer t
-  :custom
-  ;; Your bibliography file
-  (citar-bibliography '("~/Sync/paul-references-org/references.bib"))
+  :config
+  (when (my/non-empty my/references-bib)
+    (setq citar-bibliography (list my/references-bib)
+          bibtex-completion-bibliography (list my/references-bib)))
+  (when (my/non-empty my/references-library)
+    (setq citar-library-paths (list my/references-library)
+          bibtex-completion-library-path (list my/references-library)))
+  (when (my/non-empty my/notes-directory)
+    (let ((lit (expand-file-name "literature" my/notes-directory)))
+      (setq citar-notes-paths (list lit)
+            bibtex-completion-notes-path lit)))
 
-  ;; Optional: where your PDFs are stored
-  (citar-library-paths '("~/Sync/paul-references-org/library"))
-
-  ;; Optional: where notes live (before Citar-Denote)
-  (citar-notes-paths '("~/Sync/paul-notes-org/literature"))
-
-  ;; This makes Citar the default Org-cite processor
-  (org-cite-activate-processor 'citar)
-
-  ;; Use Citar for citation insertion UI
-  (org-cite-insert-processor 'citar)
-
-  ;; Use Citar for following citations (open note / bib entry / URL)
-  (org-cite-follow-processor 'citar)
-
-  ;; For export: Citar integrates with CSL
-  (org-cite-export-processors
-   '((html . (csl "chicago-author-date.csl"))
-     (latex . biblatex)
-     (t . (csl "chicago-author-date.csl")))))
+  (setq org-cite-activate-processor 'citar
+        org-cite-insert-processor   'citar
+        org-cite-follow-processor   'citar
+        org-cite-export-processors
+        '((html  . (csl "chicago-author-date.csl"))
+          (latex . biblatex)
+          (t     . (csl "chicago-author-date.csl")))))
 #+end_src
 
-* Debug Emacs
+** Citar-Denote
+#+begin_src elisp
+(use-package! citar-denote
+  :after (denote citar)
+  :config
+  (setq citar-denote-subdir       "literature"
+        citar-denote-keyword      "bib"
+        citar-denote-file-type    'org
+        citar-denote-title-format 'author-year-title
+        citar-denote-signature    'citekey
+        citar-denote-template     t)
+  (citar-denote-mode 1))
+#+end_src
+
+* HTTP
+** Verb
+#+begin_src elisp
+(use-package! verb
+  :defer t
+  :config
+  (setq verb-suppress-load-unsecure-prelude-warning t)
+  (after! org
+    (define-key org-mode-map (kbd "C-c C-r") verb-command-map)))
+
+(map! :leader
+      (:prefix ("v" . "verb")
+       :desc "send request" "r" #'verb-send-request-on-point-other-window))
+#+end_src
+
+* AI
+** Copilot Chat
+#+begin_src elisp
+(use-package! copilot-chat)
+
+(map! :leader
+      (:prefix ("l" . "co-chat")
+       :desc "Chat Prompt"                     "p" #'copilot-chat-prompt
+       :desc "Reset"                           "r" #'copilot-chat-reset
+       :desc "Chat buffers"                    "d" #'copilot-chat-display
+       :desc "Explain selected"                "e" #'copilot-chat-explain
+       :desc "Review selected"                 "v" #'copilot-chat-review
+       :desc "Document selected"               "c" #'copilot-chat-doc
+       :desc "Fix selected"                    "f" #'copilot-chat-fix
+       :desc "Optimize selected"               "o" #'copilot-chat-optimize
+       :desc "Write tests for selected"        "t" #'copilot-chat-test
+       :desc "Custom prompt with selection"    "P" #'copilot-chat-custom-prompt-selection
+       :desc "Current buffer to copilot chat"  "s" #'copilot-chat-add-current-buffer
+       :desc "Buffer list"                     "b" #'copilot-chat-list
+       :desc "Previous prompt history"         "h" #'copilot-chat-prompt-history-previous
+       :desc "Next prompt history"             "n" #'copilot-chat-prompt-history-next))
+#+end_src
+
+** GPTel
+The Anthropic key is read from auth-source (=~/.authinfo.gpg=). LM Studio
+backend is configured but only useful when the local server is running.
+#+begin_src elisp
+(use-package! gptel
+  :defer t
+  :config
+  (gptel-make-openai "LM Studio"
+    :host "localhost:1234"
+    :protocol "http"
+    :models '("openai/gpt-oss-20b")
+    :stream t)
+  (setq gptel-model 'claude-sonnet-4-20250514
+        gptel-backend (gptel-make-anthropic "Claude"
+                        :stream t
+                        :key (auth-source-pick-first-password
+                              :host "api.anthropic.com"
+                              :user "apikey"))))
+#+end_src
+
+* Feeds
+** Elfeed
+#+begin_src elisp
+(after! elfeed
+  (when (my/non-empty my/elfeed-org-file)
+    (setq rmh-elfeed-org-files (list my/elfeed-org-file))))
+#+end_src
+
+* Debug                                                                  :doc:
+Set =debug-on-error= to get backtraces. Tagged =:tangle no=.
 #+begin_src elisp :tangle no
 (setq debug-on-error t)
 #+end_src

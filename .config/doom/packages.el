@@ -1,23 +1,16 @@
 ;; -*- no-byte-compile: t; -*-
-;;; ~/.config/doom/packages.el
+;;; $DOOMDIR/packages.el
 
-;;; Examples:
-;; (package! some-package)
-;; (package! another-package :recipe (:fetcher github :repo "username/repo"))
-;; (package! builtin-package :disable t)
-
-;; AI
-;;(package! gptel)
+;; Load per-machine settings early so `my/local-features' (defined in
+;; local.el) can gate optional packages below. local.el is gitignored;
+;; if it's missing we just continue without any opt-in features.
+(let ((local-file (expand-file-name "local.el" (or (bound-and-true-p doom-user-dir)
+                                                   user-emacs-directory))))
+  (when (file-exists-p local-file)
+    (load local-file nil 'nomessage)))
 
 ;; Org
-;;(package! org-super-agenda)
 (package! ob-mermaid)
-;;(package! org-view-mode)
-
-;; Org Roam
-;;(package! org-roam-ui
-;;   :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
-;; (package! citar-org-roam)
 
 ;; Emacs
 (package! valign)
@@ -29,7 +22,7 @@
 (package! url-http-oauth)
 (package! websocket)
 
-;; Notes Packages
+;; Notes
 (package! denote)
 (package! denote-org)
 (package! denote-menu)
@@ -38,35 +31,29 @@
 (package! consult-notes)
 (package! citar-denote)
 
-;; Writing Packages
+;; Writing
 (package! olivetti)
 
-;; Programming Stuff
+;; Programming
 (package! load-env-vars)
 
-;; Drag Lines
+;; Editing
 (package! drag-stuff)
 
 ;; AI
-;; (package! copilot-chat
-;;   :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
-;; (package! copilot)
+(package! copilot-chat
+  :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
+(package! copilot)
 (package! gptel :recipe (:nonrecursive t))
 
-;; Kubernetes
-;;(package! kubernetes)
-;;(package! kubernetes-evil)
-;;(package! kubedoc)
-;;(package! k8s-mode)
-
-;; Loaded packages for work
-(when (string= (system-name) "S427544")
-  (package! lab) ;; Gitlab
-  (package! impostman) ;; Postman importing
-  )
-
-;; Obsidian
+;; Misc
 (package! obsidian)
 
-;; Jupyter
-;; (package! jupyter)
+;;; Opt-in features --------------------------------------------------------
+;; Add the corresponding symbols to `my/local-features' in local.el to enable.
+
+(when (member 'gitlab (bound-and-true-p my/local-features))
+  (package! lab))
+
+(when (member 'postman (bound-and-true-p my/local-features))
+  (package! impostman))
