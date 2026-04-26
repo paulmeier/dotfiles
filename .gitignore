@@ -64,6 +64,10 @@ flycheck_*.el
 # Build this, dont version it
 .config/doom/config.el
 
+# Per-machine doom settings (paths, GPG key, opt-in features)
+.config/doom/local.el
+.config/doom/local.el.template
+
 # Zsh - Dont include work and require it to be built
 zshrc-work.sh
 zshrc-work.org
