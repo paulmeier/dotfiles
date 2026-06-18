@@ -146,6 +146,7 @@ Local Elisp modules live under =$DOOMDIR/modules=.
 (my/add-to-load-path (expand-file-name "modules" doom-user-dir))
 (require 'isbn-to-bibtex)
 (require 'my-book-cover)
+(require 'book-note)
 (require 'lit-mode)
 (require 'comfy-mode)
 #+end_src
@@ -375,6 +376,7 @@ auto-tangle (e.g. =zshrc.org=).
        :desc "New Note"        "n" #'denote
        :desc "Insert Link"     "i" #'denote-insert-link
        :desc "Journal"         "j" #'denote-journal-new-or-existing-entry
+       :desc "New Book Note"   "t" #'my/denote-book-note
        :desc "Find in Notes"   "f" #'consult-notes-search-in-all-notes
        :desc "Search Notes"    "s" #'consult-notes))
 
@@ -454,7 +456,10 @@ read template bodies from files inside =my/notes-directory=.
 #+begin_src elisp
 (use-package! citar
   :defer t
-  :config
+  :init
+  ;; Path-based settings must be `:init` so they apply before citar is
+  ;; autoloaded — otherwise commands that read `citar-bibliography'
+  ;; (e.g. `my/denote-book-note') see nil until citar happens to load.
   (when (my/non-empty my/references-bib)
     (setq citar-bibliography (list my/references-bib)
           bibtex-completion-bibliography (list my/references-bib)))
