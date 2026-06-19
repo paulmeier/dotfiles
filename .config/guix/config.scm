@@ -25,7 +25,7 @@
              (nongnu packages nvidia)        ; nvda, nvidia-module
              (nongnu services nvidia))       ; nvidia-service-type
 
-(use-service-modules base desktop networking ssh)
+(use-service-modules base desktop networking ssh xorg)
 
 (define %keeb (keyboard-layout "us"))
 
@@ -34,12 +34,12 @@
 ;; Set the label in cfdisk: the partition "Name" field = cryptroot.
 (define cryptroot
   (mapped-device
-    (source "/dev/disk/by-partlabel/cryptroot")
+    (source (uuid "8315242c-4679-404d-b8e9-0fc15f7d2855"))
     (target "cryptroot")
     (type luks-device-mapping)))
 
 (operating-system
-  (host-name "zephyrus")
+  (host-name "chrono")
   (timezone "America/Chicago")
   (locale "en_US.utf8")
   (keyboard-layout %keeb)
@@ -90,10 +90,10 @@
   ;; ---- Users ------------------------------------------------------------
   (users
    (cons (user-account
-           (name "paul")                     ; PLACEHOLDER: your login
+           (name "paulmeier")
            (comment "Paul")
            (group "users")
-           (home-directory "/home/paul")
+           (home-directory "/home/paulmeier")
            (supplementary-groups
             '("wheel"        ; sudo
               "netdev"       ; NetworkManager
@@ -117,7 +117,7 @@
            "xdg-desktop-portal" "xdg-desktop-portal-wlr"
            ;; net / misc
            "network-manager-applet" "bluez"
-           "git" "curl" "gnu-make"
+           "git" "curl" "make"
            "nss-certs"
            "font-dejavu" "font-google-noto"))
     (list nvda)                              ; NVIDIA user-space GL / CUDA libs
