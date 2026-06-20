@@ -199,6 +199,10 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("dbus-update-activation-environment --systemd --all")
     hl.exec_cmd("qs -c noctalia-shell")
     hl.exec_cmd("xhost +SI:localuser:root")
+    -- GNOME-like additions:
+    hl.exec_cmd("hyprpm reload -n")          -- load enabled plugins (e.g. hyprexpo overview)
+    hl.exec_cmd("hyprswitch init --show-title") -- GNOME-style Alt+Tab switcher daemon
+    hl.exec_cmd("hypridle")                   -- idle: dim/lock/dpms/suspend
 end)
 #+end_src
 
@@ -336,8 +340,9 @@ Configures pointer input and touchpad gestures.
 - =hl.config({ input = { accel_profile = "flat" } })= -- disables pointer
   acceleration (1:1 movement).
 - =hl.gesture(...)= -- four touchpad swipe gestures: a 4-finger horizontal swipe
-  switches =workspace=; 3-finger down/up/left map to =close=, =fullscreen=, and
-  =float= respectively.
+  switches =workspace=; 3-finger down/left map to =close= and =float=; 3-finger
+  *up* opens the Activities overview (=hyprexpo:expo toggle=, GNOME-style) via a
+  function action, since =expo= isn't one of the DSL's built-in action strings.
 
 #+begin_src lua :tangle config/input.lua :mkdirp yes
 -- Input configuration
@@ -350,7 +355,7 @@ hl.config({
 
 hl.gesture({ fingers = 4, direction = "horizontal", action = "workspace" })
 hl.gesture({ fingers = 3, direction = "down",       action = "close" })
-hl.gesture({ fingers = 3, direction = "up",         action = "fullscreen" })
+hl.gesture({ fingers = 3, direction = "up",         action = function() hl.exec_cmd("hyprctl dispatch hyprexpo:expo toggle") end }) -- GNOME-style: open Activities overview
 hl.gesture({ fingers = 3, direction = "left",       action = "float" })
 #+end_src
 
@@ -417,13 +422,14 @@ hl.bind(mainMod .. " + F",           hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(noctCall .. " lockScreen lock"))
 hl.bind(mainMod .. " + ALT + C",     hl.dsp.exec_cmd(noctCall .. " sessionMenu toggle"))
+hl.bind(mainMod .. " + grave",       hl.dsp.exec_cmd("hyprctl dispatch hyprexpo:expo toggle")) -- Activities overview
 
 -- Change focus
 hl.bind(mainMod .. " + Left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + Up",    hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + Down",  hl.dsp.focus({ direction = "down" }))
-hl.bind("ALT + Tab",           hl.dsp.window.cycle_next())
+hl.bind("ALT + Tab",           hl.dsp.exec_cmd("hyprswitch gui --mod-key alt_l --key tab --close mod-key-release --reverse-key=grave"))
 
 -- Move active window around current workspace
 hl.bind(mainMod .. " + SHIFT + Right", hl.dsp.window.move({ direction = "r" }))

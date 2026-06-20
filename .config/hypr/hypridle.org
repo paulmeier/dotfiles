@@ -1,0 +1,74 @@
+#+title: hypridle -- Idle Management
+#+author: Paul Meier
+
+Literate config for [[https://wiki.hypr.land/Hypr-Ecosystem/hypridle/][hypridle]], Hyprland's idle daemon. It watches the Wayland
+idle-notify protocol and runs commands after periods of inactivity, giving a
+GNOME-like "dim → lock → screen-off → suspend" progression. This file tangles
+to =hypridle.conf= alongside it; start the daemon from Hyprland autostart
+(=hypridle= is launched in =hypr.org='s =hyprland.start= handler).
+
+* general
+
+Global behavior shared by all listeners:
+
+- =lock_cmd= :: command used to lock; invoked by =loginctl lock-session= and as
+  the canonical "lock now" action. We delegate to the Noctalia shell's lock
+  screen (the same IPC the =SUPER+L= keybind uses) instead of running hyprlock,
+  so there is a single lock UI. =pidof= guards against stacking lockers.
+- =before_sleep_cmd= :: run *before* the system suspends -- lock first so the
+  machine resumes to a locked screen.
+- =after_sleep_cmd= :: run *after* resume; force the displays back on (=dpms on=)
+  since some hardware wakes with blanked outputs.
+- =ignore_dbus_inhibit= :: when =false=, apps that take an idle inhibitor (video
+  players, etc., via the idle-inhibit protocol) can pause these timers.
+
+#+begin_src conf :tangle hypridle.conf :mkdirp yes
+general {
+    lock_cmd = pidof qs || qs -c noctalia-shell ipc call lockScreen lock
+    before_sleep_cmd = qs -c noctalia-shell ipc call lockScreen lock
+    after_sleep_cmd = hyprctl dispatch dpms on
+    ignore_dbus_inhibit = false
+}
+#+end_src
+
+* listeners
+
+Each =listener= fires =on-timeout= after =timeout= seconds idle, and (optionally)
+=on-resume= when activity returns. Timeouts are cumulative wall-clock from the
+last input, not chained, so order them by increasing duration.
+
+** Lock the session (5 min)
+
+Locks via Noctalia. Kept first so the screen is locked well before it blanks.
+
+#+begin_src conf :tangle hypridle.conf
+listener {
+    timeout = 300
+    on-timeout = qs -c noctalia-shell ipc call lockScreen lock
+}
+#+end_src
+
+** Turn the screen off (5.5 min)
+
+DPMS off powers down the displays shortly after locking; =on-resume= powers them
+back on when input returns.
+
+#+begin_src conf :tangle hypridle.conf
+listener {
+    timeout = 330
+    on-timeout = hyprctl dispatch dpms off
+    on-resume = hyprctl dispatch dpms on
+}
+#+end_src
+
+** Suspend the system (10 min)
+
+Final step: suspend to RAM. =before_sleep_cmd= above guarantees the lock is in
+place first.
+
+#+begin_src conf :tangle hypridle.conf
+listener {
+    timeout = 600
+    on-timeout = systemctl suspend
+}
+#+end_src
