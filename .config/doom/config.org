@@ -73,9 +73,9 @@ or nil values are treated as "feature off" by the consumers below.
     (my/projects-directory    ""    "Projectile project search root. Example: \"~/Projects\".")
     (my/snippets-directory    ""    "Path to doom-snippets clone. Example: \"~/Projects/snippets\".")
     (my/elfeed-org-file       ""    "Path to elfeed-org feeds file.")
-    (my/gpg-program           ""    "Absolute path to gpg binary, e.g. \"/opt/homebrew/bin/gpg\".")
+    (my/gpg-program           ""    "Absolute path to gpg binary, e.g. \"/usr/bin/gpg\".")
     (my/gpg-key-id            ""    "GPG key id used as recipient for `epa-file-encrypt-to'.")
-    (my/mermaid-cli           ""    "Absolute path to mmdc, e.g. \"/opt/homebrew/bin/mmdc\".")
+    (my/mermaid-cli           ""    "Absolute path to mmdc, e.g. \"/usr/bin/mmdc\" (npm: @mermaid-js/mermaid-cli).")
     (my/local-features        nil  "List of opt-in feature symbols, e.g. (gitlab postman). Consumed by packages.el and elsewhere."))
   "Schema for `local.el'. Each entry is (SYMBOL DEFAULT DOCSTRING).
 `my/write-local-template' uses this to generate a blank skeleton.")
@@ -158,9 +158,11 @@ Local Elisp modules live under =$DOOMDIR/modules=.
 #+end_src
 
 ** Fonts
-~Noto Sans Symbols 2~ fixes unicode boxes for org bullets:
+~Noto Sans Symbols 2~ fixes unicode boxes for org bullets. On Arch /
+CachyOS the monospace + symbol fonts come from the repos; ~SN Pro~ is
+installed manually under =~/.local/share/fonts=.
 #+begin_src bash :tangle no
-brew install font-noto-sans-symbols-2
+sudo pacman -S ttf-fira-code noto-fonts   # Fira Code + Noto Sans Symbols 2
 #+end_src
 
 #+begin_src elisp
@@ -170,8 +172,9 @@ brew install font-noto-sans-symbols-2
 #+end_src
 
 ** Frame
-Start maximized. The full-screen toggles are commented because they
-don't behave well on macOS.
+Start maximized and undecorated. Under Hyprland (Wayland) the compositor
+tiles and draws its own borders, so =undecorated= drops Emacs' redundant
+title bar and =maximized= is effectively handled by the WM anyway.
 #+begin_src elisp
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (add-to-list 'default-frame-alist '(undecorated . t))
