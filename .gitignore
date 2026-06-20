@@ -91,6 +91,7 @@ my-mac.org
 .config/hypr/hyprland.lua
 .config/hypr/xdph.conf
 .config/hypr/config/*.lua
+.config/hypr/hypridle.conf
 .config/kitty/kitty.conf
 .config/alacritty/alacritty.toml
 .config/fish/config.fish
