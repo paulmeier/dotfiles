@@ -78,3 +78,27 @@ zshrc-home.org
 # Home for now
 my-mac.el
 my-mac.org
+
+# Desktop/system config: generated state & reinstallable bloat (dirs are tracked partially)
+.config/fish/fish_variables
+.config/micro/syntax/
+.config/noctalia/plugins/
+.config/gtk-4.0/thumbnail.png
+*.bak
+
+# Literate config: tangled outputs. Source of truth is the adjacent .org file;
+# regenerate with `org-babel-tangle` (these are gitignored like doom's config.el).
+.config/hypr/hyprland.lua
+.config/hypr/xdph.conf
+.config/hypr/config/*.lua
+.config/kitty/kitty.conf
+.config/alacritty/alacritty.toml
+.config/fish/config.fish
+.config/btop/btop.conf
+.config/micro/settings.json
+.config/qt6ct/qt6ct.conf
+.config/xsettingsd/xsettingsd.conf
+.config/gtk-3.0/settings.ini
+.config/uwsm/env
+.config/mimeapps.list
+.config/git/ignore
