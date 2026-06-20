@@ -71,6 +71,17 @@ with something custom), you would define your own =fish_greeting= — an empty
 body suppresses the greeting entirely. It is left commented out so the default
 fastfetch greeting stays active.
 
+** Making the =doom= CLI available on PATH
+
+Doom Emacs ships its management CLI at =~/.config/emacs/bin/doom= (used for
+=doom sync=, =doom upgrade=, =doom doctor=, etc.), which is not on =PATH= by
+default. The block below adds that directory with =fish_add_path= so the =doom=
+command works in any shell. The =-g= (global) scope re-adds it on each startup
+rather than writing it to the universal =fish_variables= file, keeping the PATH
+entry version-controlled here instead of in generated state. =fish_add_path= is
+idempotent, so running it every startup is safe, and a =test -d= guard keeps the
+config clean on machines where Doom isn't installed.
+
 #+begin_src fish :tangle config.fish :mkdirp yes
 source /usr/share/cachyos-fish-config/cachyos-config.fish
 
@@ -79,4 +90,9 @@ source /usr/share/cachyos-fish-config/cachyos-config.fish
 #function fish_greeting
 #    # smth smth
 #end
+
+# Make the Doom Emacs CLI (`doom') available on PATH everywhere.
+if test -d $HOME/.config/emacs/bin
+    fish_add_path -g $HOME/.config/emacs/bin
+end
 #+end_src
