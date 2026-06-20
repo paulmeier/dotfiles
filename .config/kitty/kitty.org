@@ -1,0 +1,122 @@
+#+title: Kitty Terminal Configuration
+
+This is a literate configuration for the [[https://sw.kovidgoyal.net/kitty/][kitty]] terminal emulator. The
+single source block below tangles to =kitty.conf= in this same directory,
+which is where kitty looks for its configuration by default (under
+=~/.config/kitty/= when managed via GNU Stow).
+
+* About kitty.conf syntax
+
+The kitty configuration file is a plain-text file with a deliberately
+simple grammar:
+
+- *Directives* take the form =name value=. The option name comes first,
+  followed by whitespace, followed by the value (which runs to the end of
+  the line). Example: =font_size 12.0=.
+- *Comments* begin with =#= and run to the end of the line. Blank lines are
+  ignored. Note that kitty does not support inline/trailing comments on a
+  directive line - a =#= is only a comment when it starts the (logical)
+  line.
+- *Includes* pull in another file with =include path=. The path may be
+  relative to the directory containing the current config file. This lets
+  you split configuration across multiple files; kitty processes the
+  included file as though its contents were inlined at that point. There is
+  also =globinclude= (glob patterns) and =envinclude= (from environment
+  variables) for more advanced setups.
+- *Keybindings* use =map shortcut action=, e.g. =map ctrl+shift+t
+  new_tab=. Mappings can be combined into multi-key sequences and can be
+  cleared with =clear_all_shortcuts yes= or unmapped individually.
+
+Changes to the config can be reloaded live without restarting kitty (the
+default binding is =ctrl+shift+f5=, or send =SIGUSR1= to the kitty process).
+
+* Commonly used option categories
+
+Although the current configuration is minimal (it only wires up the active
+theme), it is worth documenting the broader set of options kitty supports so
+this file can grow as a reference:
+
+** Fonts
+- =font_family=, =bold_font=, =italic_font=, =bold_italic_font= - select the
+  font faces. The special value =auto= asks kitty to derive the variants
+  from the main family.
+- =font_size= - point size of the font (default =11.0=). Accepts a floating
+  point number.
+- =font_features= - enable/disable OpenType features per font.
+- =adjust_line_height=, =adjust_column_width= - tweak cell metrics, either as
+  an absolute pixel value or a percentage like =110%=.
+
+** Cursor
+- =cursor= - the cursor color, or =none= to use the text color.
+- =cursor_shape= - one of =block=, =beam=, or =underline= (default =block=).
+- =cursor_blink_interval= - blink period in seconds; =0= disables blinking,
+  =-1= follows the system default.
+- =cursor_stop_blinking_after= - stop blinking after this many idle seconds.
+
+** Scrollback
+- =scrollback_lines= - number of lines kept in the scrollback buffer
+  (default =2000=). Use a negative value for unlimited (bounded by
+  =scrollback_pager_history_size=).
+- =scrollback_pager= - the program used to view full scrollback (default
+  uses =less=).
+- =scrollback_pager_history_size= - megabytes of scrollback history written
+  to a temp file for the pager.
+
+** Mouse
+- =mouse_hide_wait= - hide the mouse cursor after this many seconds of
+  inactivity (default =3.0=).
+- =url_color=, =url_style= - styling of detected URLs.
+- =copy_on_select= - whether selecting text copies it to the clipboard.
+- =click_interval=, =focus_follows_mouse= - additional pointer behavior.
+
+** Performance tuning
+- =repaint_delay= - delay (ms) between screen updates (default =10=). Lower
+  is smoother but uses more CPU.
+- =input_delay= - delay (ms) before processing input for batching (default
+  =3=).
+- =sync_to_monitor= - sync screen updates to the monitor's refresh rate to
+  eliminate tearing (default =yes=).
+
+** Window layout, padding and margins
+- =remember_window_size=, =initial_window_width=,
+  =initial_window_height= - control the startup window geometry.
+- =window_padding_width= - inner padding (pts) between the window border and
+  the text; accepts 1, 2, or 4 values.
+- =window_margin_width=, =single_window_margin_width= - margins around the
+  window.
+- =window_border_width=, =draw_minimal_borders= - border rendering.
+- =hide_window_decorations= - hide the title bar/borders.
+- =enabled_layouts= - which split layouts are available.
+
+** Tab bar
+- =tab_bar_edge= - place the tab bar at the =top= or =bottom=.
+- =tab_bar_style= - =fade=, =slant=, =separator=, =powerline=, or =hidden=.
+- =tab_bar_align=, =tab_bar_min_tabs= - alignment and when to show the bar.
+- =tab_title_template=, =active_tab_foreground=, =active_tab_background= -
+  tab labelling and colors.
+
+** Colors and themes
+- The foreground/background and the 16 ANSI colors are set with
+  =foreground=, =background=, =color0= .. =color15=, etc.
+- =background_opacity= - window transparency from =0.0= to =1.0=.
+- Themes are conventionally distributed as separate =.conf= files and pulled
+  in with =include=. The =kitty +kitten themes= tool manages this by writing
+  the chosen theme to =current-theme.conf= and adding an =include= for it,
+  wrapped in =# BEGIN_KITTY_THEME= / =# END_KITTY_THEME= marker comments so
+  the tool can find and rewrite the block later.
+
+* The configuration
+
+The block below is the current, theme-tool-managed contents. The marker
+comments delimit the region that =kitty +kitten themes= owns, and the
+=include current-theme.conf= line pulls in whichever theme (here, "Noctalia")
+is currently selected. The =current-theme.conf= and =themes/= files are
+generated and maintained by the theme tool, so they are intentionally not
+part of this literate config.
+
+#+begin_src conf :tangle kitty.conf :mkdirp yes
+# BEGIN_KITTY_THEME
+# Noctalia
+include current-theme.conf
+# END_KITTY_THEME
+#+end_src

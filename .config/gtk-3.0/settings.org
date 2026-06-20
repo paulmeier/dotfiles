@@ -1,0 +1,71 @@
+#+title: GTK3 Settings
+
+This file is the literate source for =settings.ini=, the per-user
+configuration for *GTK3* applications. GTK3 reads it at startup to determine
+the widget theme, icon theme, cursor, fonts, and various rendering and
+behavior toggles.
+
+It largely *mirrors* the values served by =xsettingsd= (the XSETTINGS
+daemon). xsettingsd pushes settings to apps over X11 at runtime; this
+=settings.ini= is the static file native GTK3 apps consult directly. Keeping
+the two in sync ensures consistent appearance whether or not the XSETTINGS
+daemon is running.
+
+The file uses INI syntax with a single =[Settings]= section containing
+=key=value= lines. Tangle the source block below to regenerate
+=settings.ini=.
+
+* [Settings]
+
+** Theme, icons, and cursor
+
+- =gtk-theme-name= — the widget theme (here =adw-gtk3=).
+- =gtk-icon-theme-name= — the freedesktop icon theme. (Not set here.)
+- =gtk-cursor-theme-name= — the X cursor theme (=Bibata-Modern-Ice=).
+- =gtk-cursor-theme-size= — cursor size in pixels (=24=).
+
+** Toolbar and menu appearance
+
+- =gtk-toolbar-style= — how toolbar items render; =GTK_TOOLBAR_ICONS= shows
+  icons only (no text labels).
+- =gtk-toolbar-icon-size= — toolbar icon size constant
+  (=GTK_ICON_SIZE_LARGE_TOOLBAR=).
+- =gtk-button-images= — whether buttons show icons (=0= = off).
+- =gtk-menu-images= — whether menu items show icons (=0= = off).
+
+** Sounds
+
+- =gtk-enable-event-sounds= — play UI event sounds (=1= = on).
+- =gtk-enable-input-feedback-sounds= — sounds for input feedback (=0= = off).
+
+** Font rendering (Xft)
+
+- =gtk-xft-antialias= — antialiased glyphs (=1= = on).
+- =gtk-xft-hinting= — font hinting (=1= = on).
+- =gtk-xft-hintstyle= — hinting strength (=hintslight=).
+- =gtk-xft-rgba= — subpixel order for LCD rendering (=rgb=).
+
+** Dark mode
+
+- =gtk-application-prefer-dark-theme= — request the dark variant of the
+  theme when available (=1= = prefer dark).
+
+* Tangled source
+
+#+begin_src conf :tangle settings.ini :mkdirp yes
+[Settings]
+gtk-theme-name=adw-gtk3
+gtk-cursor-theme-name=Bibata-Modern-Ice
+gtk-cursor-theme-size=24
+gtk-toolbar-style=GTK_TOOLBAR_ICONS
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=0
+gtk-menu-images=0
+gtk-enable-event-sounds=1
+gtk-enable-input-feedback-sounds=0
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintslight
+gtk-xft-rgba=rgb
+gtk-application-prefer-dark-theme=1
+#+end_src

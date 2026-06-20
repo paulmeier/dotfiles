@@ -1,0 +1,41 @@
+#+title: Global Gitignore
+
+This is a literate configuration for Git's global ignore file. The single
+source block below tangles to =ignore= in this directory
+(=~/.config/git/ignore=), which Git uses as the default
+[[https://git-scm.com/docs/gitignore][=core.excludesFile=]]. Patterns here apply
+to every repository for this user, on top of each repo's own =.gitignore=.
+
+* Gitignore pattern syntax
+
+A gitignore file lists path patterns, one per line. The matching rules:
+
+- *Globs* :: =*= matches anything except a slash; =?= matches a single
+  non-slash character; =[abc]= matches a character class.
+- =**= :: Matches across directory boundaries. A leading =**/= matches in all
+  directories (e.g. =**/foo= matches =foo= at any depth); a trailing =/**=
+  matches everything inside; =a/**/b= matches zero or more intermediate
+  directories.
+- *Negation* (=!=) :: A leading =!= re-includes a path that an earlier pattern
+  excluded.
+- *Trailing slash* (=/=) :: Restricts the match to directories only.
+- *Leading slash* (=/=) :: Anchors the pattern to the location of the gitignore
+  file (i.e. the repository root), rather than matching at any depth.
+
+* Patterns
+
+- =**/.claude/settings.local.json= :: Excludes the per-project local Claude Code
+  settings file in any =.claude= directory at any depth in any repository. The
+  leading =**/= makes it match regardless of how deeply the =.claude= directory
+  is nested. This keeps machine- or user-local Claude Code settings out of every
+  repo's version control.
+
+Note: the pattern below begins with =*= at column 0. In the Org source block it
+is escaped with a leading comma (=,*=) so Org does not interpret it as block
+syntax; Org strips the comma on tangle, yielding the literal =**/...= pattern.
+
+* Source
+
+#+begin_src gitignore :tangle ignore :mkdirp yes
+,**/.claude/settings.local.json
+#+end_src

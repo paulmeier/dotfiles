@@ -1,0 +1,64 @@
+#+title: xsettingsd Configuration
+
+This file is the literate source for =xsettingsd.conf=, the configuration
+read by *xsettingsd* — a lightweight daemon that implements the XSETTINGS
+protocol. xsettingsd broadcasts GTK/X11 appearance and font settings to
+applications over the X server, so toolkit apps (GTK, and others honoring
+XSETTINGS) pick up a consistent theme, cursor, and font-rendering
+configuration *without* requiring a full desktop environment like GNOME or
+XFCE to be running.
+
+This makes it a natural fit for minimal window-manager setups: run
+=xsettingsd= at session start, and apps that would otherwise read these
+values from a DE settings daemon instead get them here.
+
+The file format is one setting per line, each of the form:
+
+#+begin_example
+Name/Subname value
+#+end_example
+
+where =value= is either a *quoted string* (e.g. ="adw-gtk3"=) or a bare
+*integer* (e.g. =1= for boolean on, =0= for off). Tangle the source block
+below to regenerate =xsettingsd.conf=.
+
+* Theme and icons
+
+- =Net/ThemeName= — the GTK theme name applied to applications (here
+  =adw-gtk3=, an adwaita-style theme for GTK3).
+- =Net/IconThemeName= — the freedesktop icon theme name. (Not set in this
+  config; apps fall back to their default.)
+- =Gtk/CursorThemeName= — the X cursor theme (here =Bibata-Modern-Ice=).
+
+* Sounds
+
+- =Net/EnableEventSounds= — global toggle for UI event sounds (=1= = on).
+- =EnableInputFeedbackSounds= — feedback sounds for input actions such as
+  keypresses (=0= = off).
+
+* Fonts and Xft rendering
+
+These keys control font selection and FreeType/Xft text rendering:
+
+- =Gtk/FontName= — the default UI font (family + size). (Not set here.)
+- =Xft/Antialias= — enable antialiased glyph rendering (=1= = on).
+- =Xft/Hinting= — enable font hinting (=1= = on).
+- =Xft/HintStyle= — the hinting strength: =hintnone=, =hintslight=,
+  =hintmedium=, or =hintfull= (here =hintslight=).
+- =Xft/RGBA= — subpixel order for LCD subpixel rendering: =rgb=, =bgr=,
+  =vrgb=, =vbgr=, or =none= (here =rgb=).
+- =Xft/DPI= — forced screen DPI, expressed in 1024ths of a dot per inch
+  when set. (Not set here; apps use the server-reported DPI.)
+
+* Tangled source
+
+#+begin_src conf :tangle xsettingsd.conf :mkdirp yes
+Net/ThemeName "adw-gtk3"
+Gtk/CursorThemeName "Bibata-Modern-Ice"
+Net/EnableEventSounds 1
+EnableInputFeedbackSounds 0
+Xft/Antialias 1
+Xft/Hinting 1
+Xft/HintStyle "hintslight"
+Xft/RGBA "rgb"
+#+end_src

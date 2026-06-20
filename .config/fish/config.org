@@ -1,0 +1,82 @@
+#+title: Fish Shell Configuration
+#+author: Paul Meier
+
+This is a literate configuration for the [[https://fishshell.com/][fish shell]]. The single source
+block below tangles to =config.fish= alongside this file, which fish reads on
+startup.
+
+* How fish reads this file
+
+Fish sources =~/.config/fish/config.fish= on *every* shell invocation —
+interactive sessions, login shells, and non-interactive sessions alike (unlike
+the bash split between =.bashrc= and =.bash_profile=). Because of this, any code
+that only makes sense in an interactive terminal should be guarded with:
+
+#+begin_example fish
+if status is-interactive
+    # interactive-only setup goes here
+end
+#+end_example
+
+This keeps scripts and pipelines that spawn fish non-interactively fast and free
+of side effects like greetings, prompt setup, or fastfetch banners.
+
+* A note on fish vs. POSIX syntax
+
+Fish is deliberately *not* POSIX-compatible. A few differences worth keeping in
+mind while reading this config:
+
+- Variables are set with =set= rather than =VAR=value=. Exported (environment)
+  variables use =set -gx NAME value=; the flags select scope and export:
+  - =-g= / =--global= :: visible everywhere in the running shell session, but
+    not persisted to disk.
+  - =-x= / =--export= :: export to the environment of child processes (the
+    equivalent of POSIX =export=).
+  - =-U= / =--universal= :: persisted across sessions and shared between all
+    running fish instances (stored in =fish_variables= — which we deliberately
+    leave alone, since it is generated state).
+  - =-l= / =--local= :: scoped to the current block/function only.
+- =PATH= is a real list. Rather than =export PATH="$dir:$PATH"=, fish offers
+  =fish_add_path /some/dir=, which prepends a directory to =$fish_user_paths=
+  idempotently and persistently.
+- Abbreviations (=abbr=) expand inline as you type and leave the full command in
+  history — distinct from =alias=, which defines a wrapper function. Both are
+  common, though this config currently relies on neither directly.
+- Functions are defined with =function name ... end= rather than the POSIX
+  =name() { ... }= form, and blocks close with the =end= keyword instead of
+  braces.
+- Tools that print init snippets (Starship, zoxide, direnv, etc.) are wired in
+  by piping their fish output to =source=, e.g. =starship init fish | source=.
+  None are invoked directly here; the sourced CachyOS config handles them.
+
+* The configuration
+
+The body is intentionally tiny: it sources the CachyOS distribution's shared
+fish config, then keeps a commented-out template for overriding the greeting.
+
+** Sourcing the CachyOS shared config
+
+The first line sources CachyOS's opinionated, system-wide fish config at
+=/usr/share/cachyos-fish-config/cachyos-config.fish=. That shared file does the
+heavy lifting — prompt setup, color theme, aliases, key bindings, and a
+=fish_greeting= that runs =fastfetch= — so this personal config only needs to
+layer on top of it.
+
+** Overriding the greeting (disabled)
+
+The remaining lines are a commented-out template. Fish calls a function named
+=fish_greeting= at the start of each interactive session; the CachyOS config
+defines one that prints a fastfetch system banner. To silence it (or replace it
+with something custom), you would define your own =fish_greeting= — an empty
+body suppresses the greeting entirely. It is left commented out so the default
+fastfetch greeting stays active.
+
+#+begin_src fish :tangle config.fish :mkdirp yes
+source /usr/share/cachyos-fish-config/cachyos-config.fish
+
+# overwrite greeting
+# potentially disabling fastfetch
+#function fish_greeting
+#    # smth smth
+#end
+#+end_src

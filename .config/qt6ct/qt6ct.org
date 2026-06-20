@@ -1,0 +1,73 @@
+#+title: qt6ct Configuration
+
+This file is the literate source for =qt6ct.conf=, the configuration file
+used by *qt6ct* (the Qt6 Configuration Tool). qt6ct lets you style Qt6
+applications independently of any running desktop environment, controlling
+the widget style, color palette, icon theme, fonts, and assorted interface
+behaviors.
+
+For these settings to take effect, the environment variable
+=QT_QPA_PLATFORMTHEME=qt6ct= must be exported before Qt6 applications start
+(typically in =~/.profile=, =~/.pam_environment=, or a session startup file).
+Without it, Qt6 applications fall back to their built-in defaults and ignore
+this configuration entirely.
+
+The file uses standard INI syntax: =[Section]= headers followed by
+=key=value= lines. Tangle the source block below to regenerate
+=qt6ct.conf=.
+
+* [Appearance]
+
+The =[Appearance]= section governs the visual look of Qt6 widgets:
+
+- =style= — the Qt widget style engine. =Fusion= is a portable, themable
+  style that respects the custom palette.
+- =color_scheme_path= — absolute path to a color-scheme =.conf= file
+  defining the palette colors. Here it points at a generated =noctalia.conf=
+  scheme.
+- =custom_palette= — when =true=, qt6ct applies the colors from
+  =color_scheme_path= rather than the style's default palette.
+- =icon_theme= — the freedesktop icon theme name used for Qt application
+  icons (here =breeze=).
+- =standard_dialogs= — which implementation to use for common dialogs
+  (open/save/etc.); =gtk3= delegates to the native GTK3 dialogs for a
+  consistent look with GTK apps.
+
+* [Fonts]
+
+The =[Fonts]= section (absent here) would store the general-purpose and
+fixed-width fonts as Qt-serialized font strings (an opaque comma-separated
+encoding of family, size, weight, style, and other attributes produced by
+=QFont=). Since no fonts are pinned in this config, Qt falls back to the
+system/fontconfig defaults.
+
+* [Interface]
+
+The =[Interface]= section (absent here) controls interaction behaviors such
+as the double-click interval, the cursor flash (blink) time, toolbar and
+menu behavior (icons vs. text, button styles), dialog button box layout and
+ordering, wheel scroll lines, and similar widget-level tuning. With no values
+present, qt6ct uses its defaults.
+
+* [SettingsWindow]
+
+The =[SettingsWindow]= section (absent here) persists the geometry and state
+of the qt6ct configuration GUI itself (window size/position, last-selected
+tab). It has no effect on themed applications.
+
+* [Troubleshooting]
+
+The =[Troubleshooting]= section (absent here) records diagnostic state, such
+as whether qt6ct has warned about a missing =QT_QPA_PLATFORMTHEME=
+environment variable. It is informational only.
+
+* Tangled source
+
+#+begin_src conf :tangle qt6ct.conf :mkdirp yes
+[Appearance]
+color_scheme_path=/home/$USER/.config/qt6ct/colors/noctalia.conf
+custom_palette=true
+icon_theme=breeze
+standard_dialogs=gtk3
+style=Fusion
+#+end_src

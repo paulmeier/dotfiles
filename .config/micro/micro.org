@@ -1,0 +1,70 @@
+#+title: micro Editor Settings
+
+This is a literate configuration for [[https://micro-editor.github.io/][micro]], a small, modern, terminal-based text
+editor. It tangles to =settings.json=, the file micro reads on startup to apply
+global editor options.
+
+* How micro stores settings
+
+micro keeps its global settings as a JSON object in =settings.json= inside its
+configuration directory (here =~/.config/micro/=). Every key in the object maps
+to one editor option, and the value carries the option's type (string, number,
+or boolean).
+
+You don't have to edit the file by hand. Inside the editor you can type the
+command-bar form
+
+: > set option value
+
+to change an option, and micro will persist the new value back into
+=settings.json= for you. Editing the file directly (as we do here) is just the
+declarative, version-controlled equivalent.
+
+** Global vs. filetype-scoped settings
+
+Settings written at the top level of the JSON object are *global* and apply to
+every buffer. micro also supports *filetype-* or *glob-scoped* overrides: a key
+whose name is itself a glob pattern (for example ="*.go"=) or a filetype marker
+holds a nested object of options that apply only to matching files. This lets
+you, say, use tabs in Go but spaces in Python. The configuration below uses only
+global settings.
+
+* Settings reference
+
+Below are the keys most commonly found in =settings.json=, with their accepted
+values and defaults. Only =colorscheme= is actually set in this file; the rest
+fall back to micro's built-in defaults.
+
+- =colorscheme= :: Name of the color scheme to load (a string naming a file in
+  the =colorschemes/= directory or a built-in). Default =default=. Here it is
+  set to =catppuccin-macchiato=.
+- =tabsize= :: Width of a tab in columns. Integer, default =4=.
+- =tabstospaces= :: When =true=, inserts spaces instead of a literal tab
+  character. Boolean, default =false=.
+- =autoindent= :: Automatically indent a new line to match the previous one.
+  Boolean, default =true=.
+- =softwrap= :: Visually wrap long lines instead of scrolling horizontally.
+  Boolean, default =false=.
+- =scrollbar= :: Show a scrollbar in the right margin. Boolean, default =false=.
+- =mouse= :: Enable mouse support (clicking, selecting, scrolling). Boolean,
+  default =true=.
+- =clipboard= :: Clipboard backend: ="external"= (system clipboard),
+  ="terminal"= (OSC 52), or ="internal"= (micro-only). Default ="external"=.
+- =ruler= :: Display line numbers in the left gutter. Boolean, default =true=.
+- =savecursor= :: Remember the cursor position per file between sessions.
+  Boolean, default =false=.
+- =diffgutter= :: Show git diff markers in the gutter. Boolean, default =false=.
+- =tabstospaces=, =indentchar=, =eofnewline=, =rmtrailingws= :: further
+  whitespace and line-ending controls; see =micro -options= for the full list.
+
+* The tangled file
+
+The single block below is tangled verbatim to =settings.json=. micro writes this
+file with four-space indentation, so the content is reproduced exactly to keep a
+clean diff.
+
+#+begin_src json :tangle settings.json :mkdirp yes
+{
+    "colorscheme": "catppuccin-macchiato"
+}
+#+end_src

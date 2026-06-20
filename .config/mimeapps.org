@@ -1,0 +1,58 @@
+#+title: MIME Applications
+
+This is a literate configuration for =mimeapps.list=, the freedesktop.org
+file that records MIME-type to application associations. The single source
+block below tangles to =mimeapps.list= in this directory.
+
+The file uses INI syntax (hence the =conf= source language). It maps MIME
+types and URI scheme handlers to desktop entry IDs, which are the basenames
+of =.desktop= files (e.g. =firefox.desktop=) found in the standard
+=applications= directories. When something asks "what should open this type?",
+the desktop environment consults =mimeapps.list= to resolve the handler.
+
+* Sections
+
+A =mimeapps.list= may contain up to three groups:
+
+- =[Default Applications]= :: Maps each MIME type (or =x-scheme-handler/*= URI
+  scheme) to the =.desktop= ID that should be the /default/ handler. Each value
+  is a desktop file ID; the first entry on the line that corresponds to an
+  installed, valid desktop entry wins. This section takes precedence in
+  default-application resolution.
+
+- =[Added Associations]= :: Adds extra handlers for a MIME type beyond what the
+  installed desktop entries declare, without making them the default. (Not
+  present in this file.)
+
+- =[Removed Associations]= :: Removes associations that would otherwise be
+  inherited from desktop entries or lower-priority config. (Not present in this
+  file.)
+
+** Default-application resolution
+
+For a given MIME type, the resolver walks =mimeapps.list= files in XDG
+precedence order. Within a file it first honors =[Default Applications]=,
+falling through to the first valid, installed candidate. =[Added Associations]=
+and the desktop entries' own =MimeType=/registration data supply additional
+(non-default) candidates, while =[Removed Associations]= prunes them.
+
+* Entries
+
+- =x-scheme-handler/claude-cli= :: Registers
+  =claude-code-url-handler.desktop= as the default handler for the
+  =claude-cli://= URI scheme, so links of that scheme are opened by the Claude
+  Code URL handler desktop entry.
+
+* Source
+
+Note: the on-disk =mimeapps.list= begins with a single blank line followed by
+the =[Default Applications]= group header. Org's tangler unconditionally trims
+leading blank lines from a source block body, so that blank line plus the group
+header are carried via the =:shebang= header argument (which is inserted
+verbatim, untrimmed). =:tangle-mode (identity #o644)= keeps the file
+non-executable, since a non-empty shebang would otherwise force mode 0755. The
+remaining line lives in the block body.
+
+#+begin_src conf :tangle mimeapps.list :mkdirp yes :shebang "\n[Default Applications]" :tangle-mode (identity #o644)
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+#+end_src

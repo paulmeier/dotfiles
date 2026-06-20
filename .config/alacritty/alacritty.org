@@ -1,0 +1,304 @@
+#+title: Alacritty Configuration
+
+This is a literate configuration for [[https://alacritty.org/][Alacritty]], a fast,
+cross-platform, OpenGL-accelerated terminal emulator. It is part of a
+GNU Stow managed dotfiles repository, so this file lives under
+=.config/alacritty/= and Stow symlinks it into =~/.config/alacritty/=.
+
+The single source block below tangles to =alacritty.toml= in this same
+directory (=:mkdirp yes= ensures the directory exists). Tangle with
+=C-c C-v t= inside Emacs, or from a shell:
+
+#+begin_example
+emacs -Q --batch --eval "(progn (require 'org) (org-babel-tangle-file \"alacritty.org\"))"
+#+end_example
+
+* TOML format and Alacritty
+
+Alacritty originally used a YAML configuration file. As of Alacritty
+0.13 the configuration format migrated to [[https://toml.io/][TOML]] (Tom's Obvious Minimal
+Language), and YAML support was removed. TOML organizes settings into
+/tables/, written as =[table]= headers, with nested tables written
+using dotted names such as =[window.dimensions]=. Arrays of tables --
+used here for keybindings -- use the double-bracket =[[table]]= syntax,
+where each =[[keyboard.bindings]]= block appends one element to the
+=keyboard.bindings= array.
+
+Alacritty also supports an =import= array of additional TOML files.
+Imports are merged in order, with later files overriding earlier ones,
+and the main config file taking precedence over imported files. This is
+the idiomatic way to pull in external theme files (for example the
+[[https://github.com/alacritty/alacritty-theme][alacritty-theme]] collection); this configuration instead defines its
+colors inline (a Nord-style palette) and so contains no =import= array.
+
+* Environment :: =[env]=
+
+The =[env]= table sets environment variables in the shell spawned by
+Alacritty.
+
+- =TERM= -- advertises =xterm-256color= so applications enable 256-color
+  support. (Alacritty ships its own =alacritty= terminfo entry; setting
+  =xterm-256color= maximizes compatibility on hosts that lack it.)
+- =WINIT_X11_SCALE_FACTOR= -- pins the X11 scale factor to =1=, defeating
+  automatic HiDPI scaling from the winit windowing library.
+
+* Window :: =[window]=
+
+Controls the window's appearance and behavior.
+
+- =dynamic_padding= -- spreads any extra space evenly as padding so the
+  grid stays centered.
+- =decorations= -- =full= keeps the title bar and window borders.
+- =title= -- the initial window title.
+- =opacity= -- background transparency; =0.8= is slightly translucent.
+- =decorations_theme_variant= -- requests the =Dark= client-side
+  decoration theme.
+
+Nested tables refine the window:
+
+- =[window.dimensions]= -- the startup size in =columns= and =lines= (cells).
+- =[window.class]= -- the X11/Wayland application =instance= and =general=
+  class strings, used by window managers for matching rules.
+
+* Scrolling :: =[scrolling]=
+
+- =history= -- number of lines kept in the scrollback buffer (=10000=).
+- =multiplier= -- number of lines scrolled per scroll-wheel tick.
+
+* Colors :: =[colors]=
+
+Defines the color scheme. =draw_bold_text_with_bright_colors= renders
+bold text using the bright color variants.
+
+The palette is split across nested tables:
+
+- =[colors.primary]= -- default =background= and =foreground=.
+- =[colors.normal]= -- the eight standard ANSI colors (0--7).
+- =[colors.bright]= -- the eight bright ANSI colors (8--15).
+
+Colors are hexadecimal in =0xRRGGBB= form. This is a Nord-inspired
+scheme (dark =0x2E3440= background with cool blue-grey accents).
+
+* Font :: =[font]=
+
+- =size= -- point size of the font.
+
+Per-style faces select the family and style for each weight/slant:
+
+- =[font.normal]=, =[font.bold]=, =[font.italic]=, =[font.bold_italic]= --
+  each sets a =family= and =style=. Here all use the generic =monospace=
+  family with the matching =Regular= / =Bold= / =Italic= / =Bold Italic=
+  styles.
+
+* Selection :: =[selection]=
+
+- =semantic_escape_chars= -- characters treated as word boundaries for
+  semantic (double-click) selection.
+- =save_to_clipboard= -- when true, copies selections to the system
+  clipboard automatically.
+
+* Cursor :: =[cursor]=
+
+- =style= -- the cursor shape (=Underline=).
+- =vi_mode_style= -- cursor shape while in Vi mode (=None= inherits the
+  normal style).
+- =unfocused_hollow= -- draws a hollow cursor when the window loses focus.
+- =thickness= -- cursor thickness as a fraction of a cell.
+
+* Mouse :: =[mouse]=
+
+- =hide_when_typing= -- hides the mouse cursor while typing.
+
+The =[[mouse.bindings]]= array of tables maps mouse actions. The single
+binding here pastes the primary selection on a =Middle= click.
+
+* Keyboard :: =[keyboard]=
+
+The =[[keyboard.bindings]]= array of tables defines key bindings. Each
+element matches a =key= (and optional =mods= modifiers and =mode=
+constraint, where =~= negates a mode) and runs either a named =action= or
+sends literal =chars=. Bindings here cover clipboard paste/copy, log
+clearing, scrollback navigation (Shift+PageUp/PageDown/Home/End outside
+alternate-screen mode), search, Vi-mode selection clearing, font-size
+reset, and a Shift+Return that emits an escape sequence.
+
+* General :: =[general]=
+
+- =live_config_reload= -- reloads this file automatically when it changes
+  on disk.
+- =working_directory= -- =None= inherits the parent process's working
+  directory.
+
+* The tangled configuration
+
+#+begin_src toml :tangle alacritty.toml :mkdirp yes
+[env]
+TERM = "xterm-256color"
+WINIT_X11_SCALE_FACTOR = "1"
+
+[window]
+dynamic_padding = true
+decorations = "full"
+title = "Alacritty@CachyOS"
+opacity = 0.8
+decorations_theme_variant = "Dark"
+
+[window.dimensions]
+columns = 100
+lines = 30
+
+[window.class]
+instance = "Alacritty"
+general = "Alacritty"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[colors]
+draw_bold_text_with_bright_colors = true
+
+[colors.primary]
+background = "0x2E3440"
+foreground = "0xD8DEE9"
+
+[colors.normal]
+black = "0x3B4252"
+red = "0xBF616A"
+green = "0xA3BE8C"
+yellow = "0xEBCB8B"
+blue = "0x81A1C1"
+magenta = "0xB48EAD"
+cyan = "0x88C0D0"
+white = "0xE5E9F0"
+
+[colors.bright]
+black = "0x4C566A"
+red = "0xBF616A"
+green = "0xA3BE8C"
+yellow = "0xEBCB8B"
+blue = "0x81A1C1"
+magenta = "0xB48EAD"
+cyan = "0x8FBCBB"
+white = "0xECEFF4"
+
+[font]
+size = 12
+
+[font.normal]
+family = "monospace"
+style = "Regular"
+
+[font.bold]
+family = "monospace"
+style = "Bold"
+
+[font.italic]
+family = "monospace"
+style = "Italic"
+
+[font.bold_italic]
+family = "monospace"
+style = "Bold Italic"
+
+[selection]
+semantic_escape_chars = ",│`|:\"' ()[]{}<>\t"
+save_to_clipboard = true
+
+[cursor]
+style = "Underline"
+vi_mode_style = "None"
+unfocused_hollow = true
+thickness = 0.15
+
+[mouse]
+hide_when_typing = true
+
+[[mouse.bindings]]
+mouse = "Middle"
+action = "PasteSelection"
+
+[keyboard]
+[[keyboard.bindings]]
+key = "Paste"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "Copy"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+action = "ClearLogNotice"
+
+[[keyboard.bindings]]
+key = "L"
+mods = "Control"
+mode = "~Vi"
+chars = "\f"
+
+[[keyboard.bindings]]
+key = "PageUp"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollPageUp"
+
+[[keyboard.bindings]]
+key = "PageDown"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollPageDown"
+
+[[keyboard.bindings]]
+key = "Home"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollToTop"
+
+[[keyboard.bindings]]
+key = "End"
+mods = "Shift"
+mode = "~Alt"
+action = "ScrollToBottom"
+
+[[keyboard.bindings]]
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+action = "Copy"
+
+[[keyboard.bindings]]
+key = "F"
+mods = "Control|Shift"
+action = "SearchForward"
+
+[[keyboard.bindings]]
+key = "B"
+mods = "Control|Shift"
+action = "SearchBackward"
+
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+mode = "Vi"
+action = "ClearSelection"
+
+[[keyboard.bindings]]
+key = "Key0"
+mods = "Control"
+action = "ResetFontSize"
+
+[general]
+live_config_reload = true
+working_directory = "None"
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"
+#+end_src

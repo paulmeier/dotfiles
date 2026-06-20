@@ -1,0 +1,740 @@
+#+title: CachyOS Hyprland Configuration (Literate)
+#+property: header-args:lua :mkdirp yes
+#+property: header-args:conf :mkdirp yes
+
+This is a literate Org-mode source for my CachyOS [[https://hypr.land/][Hyprland]]
+configuration, managed as part of a GNU Stow dotfiles repository. Tangling this
+file regenerates the entire =~/.config/hypr/= tree.
+
+Unlike a traditional =hyprland.conf=, this setup uses CachyOS's Lua-DSL frontend
+for Hyprland. The entry point is =hyprland.lua=, which simply =require= s a set of
+focused modules living under =config/=. Each module talks to Hyprland through a
+global helper table called =hl= (and color globals it defines). The =hl= API is
+provided by the CachyOS/Hyprland Lua runtime, not by these files; the modules
+below only *use* it.
+
+** Tangling and whitespace notes
+
+Tangle with:
+
+: emacs -Q --batch --eval "(progn (require 'org) (setq org-src-preserve-indentation t) (org-babel-tangle-file \"hypr.org\"))"
+
+Setting =org-src-preserve-indentation= keeps the Lua indentation intact. Two
+cosmetic, non-semantic whitespace points are worth knowing:
+
+- =xdph.conf= and =config/misc.lua= originally had *no* trailing newline at EOF.
+  Org always emits a final newline, so the tangled versions gain one. Lua and
+  the portal parser do not care.
+- =config/windowrules.lua= originally began with a single blank line. Org's
+  tangler unconditionally trims leading blank lines from a block body
+  (=org-trim= in the tangle path), so the tangled file starts directly at the
+  first comment. This is purely cosmetic and has no effect on the rules.
+
+* Overview: how the config loads
+
+The =hyprland.lua= file is the single top-level script Hyprland evaluates. It
+does nothing but pull in the eleven modules under =config/=, in alphabetical
+order. Because Lua executes each =require= d module immediately, the load order is
+exactly the order of the =require= statements:
+
+1. =config.animations=  -- bezier/spring curves and per-leaf animation settings
+2. =config.autostart=   -- programs launched on Hyprland start
+3. =config.colors=      -- global color constants ("CACHY*" palette)
+4. =config.decorations= -- gaps, borders, rounding, opacity, blur, group colors
+5. =config.defaults=    -- default app commands (terminal, browser, etc.)
+6. =config.environment= -- environment variables (currently empty/commented)
+7. =config.input=       -- input devices, accel profile, touch gestures
+8. =config.keybinds=    -- all keybindings, including the workspace loop
+9. =config.misc=        -- dwindle layout, swallow, vrr, xwayland, ecosystem
+10. =config.monitors=    -- monitor outputs/modes/scale
+11. =config.windowrules= -- window rules (float/size/opacity/workspace placement)
+
+Note the ordering matters for *globals*: =colors= must be loaded before
+=decorations=, =keybinds=, =misc=, and =windowrules=, because those reference the
+=CACHY*= color globals it defines. =defaults= must be loaded before =keybinds=,
+which references =TERMINAL=, =BROWSER=, etc. Since =require= runs alphabetically
+and =colors=/=defaults= sort before their consumers, this happens to work out.
+
+** The =hl= helper API (observed)
+
+These functions are referenced by the modules but defined by the runtime. What
+each appears to do, inferred from usage:
+
+- =hl.config({...})= -- applies a nested table of Hyprland config sections
+  (=general=, =decoration=, =input=, =misc=, etc.), mirroring the normal
+  =hyprland.conf= category/variable structure.
+- =hl.curve(name, spec)= -- defines a named animation curve; =spec.type= is
+  ="bezier"= (with control =points=) or ="spring"= (with =mass=, =stiffness=,
+  =dampening=).
+- =hl.animation({...})= -- configures one animation =leaf= (e.g. =windows=,
+  =workspaces=) with =enabled=, =speed=, a =bezier= or =spring= reference, and a
+  =style=.
+- =hl.on(event, fn)= -- registers a callback for a runtime event (here
+  ="hyprland.start"=).
+- =hl.exec_cmd(cmd)= -- runs a shell command immediately (used in autostart).
+- =hl.env(name, value)= -- sets an environment variable (mentioned in a comment).
+- =hl.monitor({...})= -- declares a monitor with =output=, =mode=, =position=,
+  =scale=.
+- =hl.gesture({...})= -- defines a touchpad gesture by =fingers=, =direction=,
+  and =action=.
+- =hl.window_rule({...})= -- defines a window rule. It takes a =match= table
+  (=class=, =title=, =initial_title=, =content=, =xwayland=, =float=, ...) plus
+  the properties to apply (=float=, =size=, =move=, =opacity=, =workspace=,
+  =pin=, =center=, =fullscreen_state=, =suppress_event=, =no_focus=, ...). It
+  returns a rule object with methods like =:set_enabled(bool)=.
+- =hl.bind(keys, dispatcher, opts)= -- binds a key combo to a dispatcher.
+  =opts= may include =locked= (works on lock screen) and =repeating= (fires
+  while held).
+- =hl.dsp.*= -- the "dispatcher" namespace, building actions for =hl.bind=:
+  - =hl.dsp.exec_cmd(cmd)= -- spawn a command.
+  - =hl.dsp.window.close()=, =.float({action})=, =.fullscreen({mode})=,
+    =.move({direction|workspace, follow})=, =.cycle_next()=, =.drag()=,
+    =.resize()= -- window actions.
+  - =hl.dsp.focus({direction|workspace})= -- move focus.
+  - =hl.dsp.layout(name)= -- layout message (e.g. ="togglesplit"=).
+  - =hl.dsp.workspace.toggle_special()= -- toggle the scratchpad.
+
+* hyprland.lua -- entry point
+
+The root script. It is intentionally trivial: a header comment followed by the
+eleven module =require= s described above. Keeping the entry point as a pure
+manifest makes it easy to see the whole config surface at a glance and to
+enable/disable a concern by commenting one line.
+
+#+begin_src lua :tangle hyprland.lua :mkdirp yes
+-- CachyOS Hyprland Configuration
+
+require("config.animations")
+require("config.autostart")
+require("config.colors")
+require("config.decorations")
+require("config.defaults")
+require("config.environment")
+require("config.input")
+require("config.keybinds")
+require("config.misc")
+require("config.monitors")
+require("config.windowrules")
+#+end_src
+
+* xdph.conf -- xdg-desktop-portal-hyprland
+
+This is a plain (non-Lua) config consumed by
+=xdg-desktop-portal-hyprland= (XDPH), which bridges Wayland and the
+=xdg-desktop-portal= screencast/screenshot APIs used by browsers, OBS, etc. The
+single =screencopy= block sets =allow_token_by_default = true=, so the portal
+grants a restore token automatically and apps can keep sharing the same
+source/window across sessions without re-prompting on every share.
+
+This is the one file in the tree that is *not* Lua, so it tangles with a =conf=
+source block. (The original file lacks a trailing newline; tangling adds one,
+which is harmless.)
+
+#+begin_src conf :tangle xdph.conf :mkdirp yes
+screencopy {
+    allow_token_by_default = true
+}
+#+end_src
+
+* config/animations.lua -- curves and animations
+
+Defines the animation system. First it registers reusable *curves* via
+=hl.curve=:
+
+- *Beziers* (=type = "bezier"=) -- cubic easing curves given two control points.
+  =easeOutQuint= and =overshoot= decelerate/overshoot at the end; =quick= snaps
+  in fast; =linear=/=almostLinear= are near-constant-speed.
+- *Springs* (=type = "spring"=) -- physically based, parameterized by =mass=,
+  =stiffness=, and =dampening=. =easy= is a stiff, well-damped spring; =rubber=
+  is bouncier (lower stiffness, less damping).
+
+Then =hl.animation= wires named animation *leaves* to those curves: =global=
+(master), =windows= (a damped =easy= spring with a =slide= style), =workspaces=
+(a =quick= bezier, =slide 20%=), and the special-workspace in/out slides from
+the top/bottom. =speed= controls duration (higher = faster in this DSL).
+
+#+begin_src lua :tangle config/animations.lua :mkdirp yes
+-- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
+
+-- Default beziers
+hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
+hl.curve("easeInOutCubic", { type = "bezier", points = { {0.65, 0.05}, {0.36, 1}    } })
+hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1}       } })
+hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1}    } })
+hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1}     } })
+hl.curve("overshoot",      { type = "bezier", points = { {0.5, 0.9}, {0.1, 1.1}     } })
+
+-- Default springs
+hl.curve("easy",           { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
+hl.curve("rubber",         { type = "spring", mass = 1, stiffness = 70,      dampening = 10         })
+
+-- Animations
+hl.animation({ leaf = "global",              enabled = true, speed = 3, bezier = "quick"                 })
+hl.animation({ leaf = "windows",             enabled = true, speed = 3, spring = "easy",  style = "slide" })
+hl.animation({ leaf = "workspaces",          enabled = true, speed = 5, bezier = "quick", style = "slide 20%" })
+hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 2, bezier = "quick", style = "slide top"})
+hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 2, bezier = "quick", style = "slide bottom"})
+#+end_src
+
+* config/autostart.lua -- startup programs
+
+Registers an =hl.on("hyprland.start", ...)= callback that fires once the
+compositor is up. The comment notes that under UWSM you would normally use XDG
+autostart instead; this file is for the non-UWSM path or for things that must
+run inside the Hyprland session. The three commands:
+
+- =dbus-update-activation-environment --systemd --all= -- pushes the Wayland
+  session environment into the D-Bus/systemd user activation environment so
+  later-started services inherit it.
+- =qs -c noctalia-shell= -- launches the Quickshell-based "noctalia" shell (bar,
+  launcher, notifications, etc.) referenced throughout the keybinds.
+- =xhost +SI:localuser:root= -- grants the local root user access to the X
+  server (XWayland), so root GUI apps can display.
+
+#+begin_src lua :tangle config/autostart.lua :mkdirp yes
+-- Auto-start config
+-- if you dont use UWSM add your auto start programs here, otherwise use XDG autostart https://wiki.archlinux.org/title/XDG_Autostart
+
+hl.on("hyprland.start", function ()
+    hl.exec_cmd("dbus-update-activation-environment --systemd --all")
+    hl.exec_cmd("qs -c noctalia-shell")
+    hl.exec_cmd("xhost +SI:localuser:root")
+end)
+#+end_src
+
+* config/colors.lua -- the CachyOS palette
+
+Defines the global color constants used by =decorations.lua= and =misc.lua=.
+Each is an =rgba(...)= string in Hyprland's =RRGGBBAA= hex form. The palette is
+CachyOS's signature greens/teals plus blues, white, and two greys:
+
+- =CACHYLGREEN= / =CACHYMGREEN= / =CACHYDGREEN= -- light/medium/dark green
+  (used for active borders, group bars, and the splash).
+- =CACHYLBLUE= / =CACHYMBLUE= / =CACHYDBLUE= -- light/medium/dark blue (group
+  and locked-group borders).
+- =CACHYWHITE= / =CACHYGREY= / =CACHYGRAY= -- white and two greys (=CACHYGRAY=
+  is the inactive-border color).
+
+Because these are plain Lua globals (no =local=), they are visible to every
+module loaded afterward.
+
+#+begin_src lua :tangle config/colors.lua :mkdirp yes
+-- Cachy colors
+
+CACHYLGREEN = "rgba(82dcccff)"
+CACHYMGREEN = "rgba(00aa84ff)"
+CACHYDGREEN = "rgba(007d6fff)"
+CACHYLBLUE  = "rgba(01ccffff)"
+CACHYMBLUE  = "rgba(182545ff)"
+CACHYDBLUE  = "rgba(111826ff)"
+CACHYWHITE  = "rgba(ffffffff)"
+CACHYGREY   = "rgba(ddddddff)"
+CACHYGRAY   = "rgba(798bb2ff)"
+#+end_src
+
+* config/decorations.lua -- look and feel
+
+A single =hl.config= call covering the visual "look and feel". Sections:
+
+- =general= -- layout geometry: 3px inner gaps, 8px outer gaps, 2px borders, a
+  10px =extend_border_grab_area= and =resize_on_border= so you can grab borders
+  to resize. The active border is a 45-degree gradient from =CACHYLGREEN= to
+  =CACHYDGREEN=; the inactive border is =CACHYGRAY=.
+- =group= -- colors for grouped/tabbed windows: active/inactive and
+  locked-active/locked-inactive border colors, plus a matching =groupbar= color
+  set for the tab bar.
+- =decoration= -- the eye candy: =dim_special= dims special workspaces to 0.3,
+  =rounding= 10px corners, opacity of 0.95 active / 0.85 inactive / 1.0
+  fullscreen, and =blur= with size 5, 4 passes, and =special = true= (blur
+  applies to special workspaces too).
+
+#+begin_src lua :tangle config/decorations.lua :mkdirp yes
+-- Look and feel configuration
+
+hl.config({
+    general = {
+        gaps_in = 3,
+        gaps_out = 8,
+        border_size = 2,
+        extend_border_grab_area = 10,
+        resize_on_border = true,
+        col = {
+            active_border = {
+                colors = { CACHYLGREEN, CACHYDGREEN },
+                angle = 45,
+            },
+            inactive_border = CACHYGRAY,
+        },
+    },
+    group = {
+        col = {
+            border_active = CACHYLBLUE,
+            border_inactive = CACHYGRAY,
+            border_locked_active = CACHYDBLUE,
+            border_locked_inactive = CACHYGRAY,
+        },
+        groupbar = {
+            col = {
+                active = CACHYLGREEN,
+                inactive = CACHYGRAY,
+                locked_active = CACHYDBLUE,
+                locked_inactive = CACHYGRAY,
+            },
+        },
+    },
+    decoration = {
+        dim_special = 0.3,
+        rounding = 10,
+        active_opacity = 0.95,
+        inactive_opacity = 0.85,
+        fullscreen_opacity = 1,
+        blur = {
+            size = 5,
+            passes = 4,
+            special = true,
+        },
+    },
+})
+#+end_src
+
+* config/defaults.lua -- default applications
+
+Plain global string constants naming the default applications, consumed by
+=keybinds.lua= (SUPER+Return launches =TERMINAL=, SUPER+W launches =BROWSER=,
+etc.). Defining them here keeps the launcher bindings declarative: change the
+program once and every binding follows.
+
+- =TERMINAL= = kitty, =FILE_MANAGER= = dolphin, =BROWSER= = firefox,
+  =EDITOR= = gnome-text-editor (new window), =CALCULATOR= = gnome-calculator.
+
+#+begin_src lua :tangle config/defaults.lua :mkdirp yes
+-- Hyprland default apps
+
+TERMINAL     = "kitty"
+FILE_MANAGER = "dolphin"
+BROWSER      = "firefox"
+EDITOR       = "gnome-text-editor --new-window"
+CALCULATOR   = "gnome-calculator"
+#+end_src
+
+* config/environment.lua -- environment variables
+
+Intentionally empty save for two comment lines. Under UWSM the session
+environment is managed elsewhere, so there is nothing to set here; the comment
+shows the =hl.env("QT_QPA_PLATFORM", "wayland")= form for when you do need a
+variable.
+
+#+begin_src lua :tangle config/environment.lua :mkdirp yes
+-- Environmental variables
+-- if you don't use UWSM, define your variables here (e.g. hl.env("QT_QPA_PLATFORM", "wayland"))
+#+end_src
+
+* config/input.lua -- input and gestures
+
+Configures pointer input and touchpad gestures.
+
+- =hl.config({ input = { accel_profile = "flat" } })= -- disables pointer
+  acceleration (1:1 movement).
+- =hl.gesture(...)= -- four touchpad swipe gestures: a 4-finger horizontal swipe
+  switches =workspace=; 3-finger down/up/left map to =close=, =fullscreen=, and
+  =float= respectively.
+
+#+begin_src lua :tangle config/input.lua :mkdirp yes
+-- Input configuration
+
+hl.config({
+    input = {
+        accel_profile = "flat",
+    },
+})
+
+hl.gesture({ fingers = 4, direction = "horizontal", action = "workspace" })
+hl.gesture({ fingers = 3, direction = "down",       action = "close" })
+hl.gesture({ fingers = 3, direction = "up",         action = "fullscreen" })
+hl.gesture({ fingers = 3, direction = "left",       action = "float" })
+#+end_src
+
+* config/keybinds.lua -- all keybindings
+
+The largest module. It opens with three locals: =mainMod = "SUPER"= (the modifier
+used for almost everything), =noctCall= (the prefix =qs -c noctalia-shell ipc
+call = for sending IPC commands to the noctalia shell), and =launchPrefix =
+"uwsm app -- "= (wraps launched apps in UWSM scopes). The bindings are grouped by
+purpose:
+
+** Window management
+Kill (=SUPER+Escape= via =hyprctl kill=), close (=SUPER+Q=), toggle float
+(=SUPER+ALT+Space=), maximize/fullscreen (=SUPER+D= mode 1, =SUPER+F= full),
+toggle split layout (=SUPER+J=), lock screen and session menu via noctalia.
+Arrow keys move *focus*; =ALT+Tab= cycles. =SUPER+SHIFT+arrows= move the active
+window within the workspace; =SUPER+CONTROL+SHIFT+Left/Right= move it to the
+relative workspace. =SUPER+mouse:272/273= (left/right button) drag and resize
+with the mouse.
+
+** Launcher
+=SUPER+Return/E/T/C/W= launch terminal / file manager / editor / calculator /
+browser (each through =launchPrefix=). =CONTROL+SHIFT+Escape= opens btop in a
+terminal. The remaining bindings toggle noctalia surfaces: settings (=Z=),
+control center (=X=), the app launcher (=Space=), and the emoji picker
+(=period=).
+
+** Hardware controls
+Media-key bindings routed to noctalia: volume up/down/mute output/mute input
+(all =locked= so they work on the lock screen, and =repeating=); play/pause,
+next, previous; and brightness up/down (=repeating=).
+
+** Utilities
+Screen capture via the noctalia =screen-toolkit= plugin (color picker, annotate,
+annotate-window, region toggle), wallpaper toggle (=SUPER+SHIFT+W=), and
+clipboard history (=SUPER+V=).
+
+** Workspaces
+A =for i = 1, 10= loop binds =SUPER+<n>= to focus workspace =n=,
+=SUPER+SHIFT+<n>= to move-and-follow, and =SUPER+ALT+<n>= to move silently
+(=follow = false=). =local key = i % 10= maps workspace 10 to the =0= key.
+Additional bindings: =SUPER+CONTROL+Left/Right= focus relative workspaces,
+=SUPER+CONTROL+Down= focus an empty one, the =ALT= variants move the window;
+mouse wheel with =SUPER= scrolls through existing workspaces. The scratchpad:
+=SUPER+SHIFT+S= moves a window to the =special= workspace, =SUPER+S= toggles it.
+
+** Notifications
+=SUPER+A= toggles the noctalia notification history.
+
+#+begin_src lua :tangle config/keybinds.lua :mkdirp yes
+local mainMod = "SUPER"
+local noctCall = "qs -c noctalia-shell ipc call "
+local launchPrefix = "uwsm app -- " -- if you are not using UWSM, make this empty (e.g. "")
+
+---------------------------
+---- WINDOW MANAGEMENT ----
+---------------------------
+
+hl.bind(mainMod .. " + Escape",      hl.dsp.exec_cmd("hyprctl kill"))
+hl.bind(mainMod .. " + Q",           hl.dsp.window.close())
+hl.bind(mainMod .. " + ALT + Space", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + D",           hl.dsp.window.fullscreen({ mode = 1 }))
+hl.bind(mainMod .. " + F",           hl.dsp.window.fullscreen())
+hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
+hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(noctCall .. " lockScreen lock"))
+hl.bind(mainMod .. " + ALT + C",     hl.dsp.exec_cmd(noctCall .. " sessionMenu toggle"))
+
+-- Change focus
+hl.bind(mainMod .. " + Left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + Up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + Down",  hl.dsp.focus({ direction = "down" }))
+hl.bind("ALT + Tab",           hl.dsp.window.cycle_next())
+
+-- Move active window around current workspace
+hl.bind(mainMod .. " + SHIFT + Right", hl.dsp.window.move({ direction = "r" }))
+hl.bind(mainMod .. " + SHIFT + Left",  hl.dsp.window.move({ direction = "l" }))
+hl.bind(mainMod .. " + SHIFT + Up",    hl.dsp.window.move({ direction = "u" }))
+hl.bind(mainMod .. " + SHIFT + Down",  hl.dsp.window.move({ direction = "d" }))
+hl.bind(mainMod .. " + CONTROL + SHIFT + Right", hl.dsp.window.move({ workspace = "r+1" }))
+hl.bind(mainMod .. " + CONTROL + SHIFT + Left",  hl.dsp.window.move({ workspace = "r-1" }))
+
+-- Move & Resize with mouse
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag())
+hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize())
+
+------------------
+---- LAUNCHER ----
+------------------
+
+hl.bind(mainMod .. " + Return",     hl.dsp.exec_cmd(launchPrefix .. TERMINAL))
+hl.bind(mainMod .. " + E",          hl.dsp.exec_cmd(launchPrefix .. FILE_MANAGER))
+hl.bind(mainMod .. " + T",          hl.dsp.exec_cmd(launchPrefix .. EDITOR))
+hl.bind(mainMod .. " + C",          hl.dsp.exec_cmd(launchPrefix .. CALCULATOR))
+hl.bind(mainMod .. " + W",          hl.dsp.exec_cmd(launchPrefix .. BROWSER))
+hl.bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd(launchPrefix .. TERMINAL .. " -e btop"))
+hl.bind(mainMod .. " + Z",          hl.dsp.exec_cmd(noctCall .. "settings toggle"))
+hl.bind(mainMod .. " + X",          hl.dsp.exec_cmd(noctCall .. "controlCenter toggle"))
+hl.bind(mainMod .. " + Space",      hl.dsp.exec_cmd(noctCall .. "launcher toggle"))
+hl.bind(mainMod .. " + period",     hl.dsp.exec_cmd(noctCall .. "launcher emoji"))
+
+---------------------------
+---- HARDWARE CONTROLS ----
+---------------------------
+
+-- Audio
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(noctCall .. "volume increase"),   { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(noctCall .. "volume decrease"),   { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd(noctCall .. "volume muteOutput"), { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd(noctCall .. "volume muteInput"),  { locked = true, repeating = true })
+
+-- Media
+hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd(noctCall .. "media playPause"), { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd(noctCall .. "media playPause"), { locked = true })
+hl.bind("XF86AudioNext",  hl.dsp.exec_cmd(noctCall .. "media next"),      { locked = true })
+hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd(noctCall .. "media previous"),  { locked = true })
+
+-- Brightness
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(noctCall .. "brightness increase"), { repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(noctCall .. "brightness decrease"), { repeating = true })
+
+-------------------
+---- UTILITIES ----
+-------------------
+
+-- Screen Capture
+hl.bind(mainMod .. " + P",     hl.dsp.exec_cmd(noctCall .. "plugin:screen-toolkit colorPicker"))
+hl.bind("Print",               hl.dsp.exec_cmd(noctCall .. "plugin:screen-toolkit annotate"))
+hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(noctCall .. "plugin:screen-toolkit annotateWindow"))
+hl.bind(mainMod .. " + R",     hl.dsp.exec_cmd(noctCall .. "plugin:screen-toolkit toggle"))
+
+-- Theming and Wallpaper
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(noctCall .. " wallpaper toggle"))
+
+-- Clipboard
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd(noctCall .. "launcher clipboard"))
+
+--------------------
+---- WORKSPACES ----
+--------------------
+
+for i = 1, 10 do
+    local key = i % 10
+    hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i, follow = true }))
+    hl.bind(mainMod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i, follow = false }))
+end
+
+hl.bind(mainMod .. " + CONTROL + Right",       hl.dsp.focus({ workspace = "r+1" }))
+hl.bind(mainMod .. " + CONTROL + Left",        hl.dsp.focus({ workspace = "r-1" }))
+hl.bind(mainMod .. " + CONTROL + Down",        hl.dsp.focus({ workspace = "empty" }))
+hl.bind(mainMod .. " + CONTROL + ALT + Right", hl.dsp.window.move({ workspace = "r+1" }))
+hl.bind(mainMod .. " + CONTROL + ALT + Left",  hl.dsp.window.move({ workspace = "r-1" }))
+
+-- Scroll through existing workspaces
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+
+-- Special workspace (scratchpad)
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special" }))
+hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special())
+
+-----------------------
+---- NOTIFICATIONS ----
+-----------------------
+
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(noctCall .. "notifications toggleHistory"))
+#+end_src
+
+* config/misc.lua -- layout and miscellaneous behavior
+
+A single =hl.config= covering assorted compositor behavior:
+
+- =dwindle= -- the dwindle layout with =preserve_split = true= (keeps the chosen
+  split orientation when windows change).
+- =misc= -- =col.splash= sets the splash text color to =CACHYLGREEN=;
+  =middle_click_paste= disabled; =enable_swallow= with a =swallow_regex= so
+  terminals (kitty, ghostty, konsole, alacritty, gnome-terminal, xfce-terminal)
+  are "swallowed" by the GUI apps they launch; =vrr = 3= sets variable refresh
+  rate to fullscreen-only mode.
+- =xwayland= -- =force_zero_scaling = true= to keep XWayland apps crisp on
+  scaled displays.
+- =ecosystem= -- silences Hyprland's update news and donation nag.
+
+(The original file lacks a trailing newline; tangling adds one, which is
+harmless.)
+
+#+begin_src lua :tangle config/misc.lua :mkdirp yes
+hl.config({
+    dwindle = {
+        preserve_split = true,
+    },
+    misc = {
+        col = {
+            splash = CACHYLGREEN,
+        },
+        middle_click_paste = false,
+        enable_swallow = true,
+        swallow_regex = "(kitty|ghostty|[Kk]onsole|Alacritty|gnome-terminal|xfce[0-9]?-terminal)",
+        vrr = 3,
+    },
+    xwayland = {
+        force_zero_scaling = true
+    },
+    ecosystem = {
+        no_update_news = true,
+        no_donation_nag = true,
+    },
+})
+#+end_src
+
+* config/monitors.lua -- displays
+
+Declares monitors with =hl.monitor=. Here there is a single laptop panel:
+=eDP-1= at its =preferred= mode, auto position, and =scale = 1.0=. (Note the
+upstream typo "Montior" in the comment is preserved verbatim.)
+
+#+begin_src lua :tangle config/monitors.lua :mkdirp yes
+-- Montior wiki https://wiki.hypr.land/Configuring/Basics/Monitors/
+
+hl.monitor({
+    output    = "eDP-1",
+    mode      = "preferred",
+    position  = "auto",
+    scale     = 1.0,
+})
+#+end_src
+
+* config/windowrules.lua -- window rules
+
+A series of =hl.window_rule= calls (and a couple of loops) that float, size,
+move, place, and tweak the opacity of specific windows. Grouped by intent:
+
+** Picture-in-Picture
+Matches PiP windows by title regex, floats them, keeps aspect ratio, parks them
+at 73% / 72% of the screen at 25% x 25% size, and pins them above other windows.
+
+** Gaming
+Defines =gamingApps= (Steam apps / gamescope) and a named =gaming= workspace.
+Rules send game content and gaming apps to that workspace; float Steam's friends
+list and the "Launching..." dialog; force actual game windows to monitor size
+with =fullscreen_state = 2= and tag them as =content = "game"=; and float/center
+Steam app windows that have no title yet.
+
+** Apps
+=primaryWorkspace = 1=. Rules float Wine =.exe= windows, send vesktop/discord to
+workspace 1, float and size calculators, handle KDE utilities (keditfiletype,
+ark), and give Dolphin a floated, cursor-anchored placement while keeping its
+transient dialogs tiled (the =negative:= title match).
+
+** Opacity overrides
+Forces fully opaque (=1.0 override=) for browsers, terminals (so the terminal's
+own opacity wins), and media players (mpv, haruna, plex, gwenview, vlc).
+
+** Float utility windows / modals
+Two Lua tables (=floatApps=, =modalMatches=) iterated with =ipairs= to float
+config tools, audio/network applets, wine helpers, and common file dialogs /
+portal windows. A catch-all centers any floating window at 50% / 50%.
+
+** Event suppression and XWayland fixes
+=suppress-maximize-events= ignores maximize requests from all apps (the
+commented =suppressMaximizeRule:set_enabled(false)= shows how to disable it).
+=fix-xwayland-drags= matches empty-class/empty-title floating XWayland windows
+and sets =no_focus= to work around drag glitches.
+
+#+begin_src lua :tangle config/windowrules.lua :mkdirp yes
+-- Picture-in-Picture
+hl.window_rule({
+    match             = { title = "^([Pp]icture[-\\s]?[Ii]n[-\\s]?[Pp]icture)(.*)$" },
+    float             = true,
+    keep_aspect_ratio = true,
+    move              = "73% 72%",
+    size              = "25% 25%",
+    pin               = true,
+})
+
+-- Gaming
+local gamingApps = "^(steam_app.*|gamescope)$"
+local gamingWorkspace = "name:gaming"
+
+hl.window_rule({ match = { content = "game" }, workspace = gamingWorkspace })
+hl.window_rule({ match = { class = gamingApps }, workspace = gamingWorkspace })
+hl.window_rule({ match = { class = "^(steam)$", title = "^(Friends List)$" }, float = true })
+hl.window_rule({
+    match = {
+        class = "^(steam)$",
+        title = "^(Launching\\.{3})$"
+    },
+    float     = true,
+    center    = true,
+    workspace = gamingWorkspace,
+})
+hl.window_rule({
+    match = {
+        class         = gamingApps,
+        title         = "^(.+)$",
+        initial_title = "negative:^(.*\\\\home\\\\.*)$",
+    },
+    size             = "monitor_w monitor_h",
+    fullscreen_state = 2,
+    content          = "game",
+})
+hl.window_rule({
+    match = {
+        class         = "^(steam_app.*)$",
+        initial_title = "^$",
+    },
+    float            = true,
+    center           = true,
+    fullscreen       = false,
+    fullscreen_state = 0,
+})
+
+-- Apps
+local primaryWorkspace = 1
+
+hl.window_rule({ match = { class = "^(.*\\.exe)$", float = true }, primaryWorkspace, center = true, fullscreen_state = 0 })
+hl.window_rule({ match = { class = "^(vesktop|discord)$" }, primaryWorkspace })
+hl.window_rule({ match = { class = "^(.*[Cc]alculator.*)$" }, float = true, size = "380 616" })
+hl.window_rule({ match = { class = "^(org.kde.keditfiletype)$" }, float = true })
+hl.window_rule({ match = { class = "^(org.kde.ark)$" }, size = "(monitor_w*0.40) (monitor_h*0.40)" })
+hl.window_rule({
+    match = {
+        class = "^(org.kde.dolphin)$",
+        title = "negative:^(Moving.*|Create New.*|Extract.*|Compress.*|Copying.*|Progress.*|Configure.*|Properties.*|Choose\\sApplication.*)$",
+    },
+    float = true,
+    move = {
+        "max(0, min(cursor_x - 650, monitor_w - 1320))",
+        "max(0, min(cursor_y - 50, monitor_h - 820))"
+    },
+    size = "1300 800",
+})
+
+-- Opacity Overrides
+local terminals = "^(kitty|ghostty|[Kk]onsole|Alacritty|gnome-terminal|xfce[0-9]?-terminal)$"
+
+hl.window_rule({ match = { class = "^(firefox|zen)$" }, opacity = "1.0 override" })
+hl.window_rule({ match = { class = terminals }, opacity = "1.0 override" }) -- override opacity in favor of terminal settings for opacity
+hl.window_rule({ match = { class = "^(mpv|org.kde.haruna|.*plex.*|org\\.kde\\.gwenview|.*vlc.*)$" }, opacity = "1.0 override" })
+
+-- Float Utility Windows
+local floatApps = {
+    { class = "^(kvantummanager|qt[56]ct|nwg-look)$" },
+    { class = "^(org.pulseaudio.pavucontrol|blueman-manager|nm-applet|nm-connection-editor)$" },
+    { title = "^(Winetricks.*|Protontricks.*)$" },
+}
+for _, m in ipairs(floatApps) do hl.window_rule({ match = m, float = true }) end
+
+hl.window_rule({ match = { float = true }, move = "50% 50%" })
+
+-- Float Common Modals
+local modalMatches = {
+    { title = "^(Open|Authentication Required|Add Folder to Workspace|Choose Files|Save As|Confirm to replace files|File Operation Progress)$" },
+    { initial_title = "^(Open File)$" },
+    { class = "^([Xx]dg-desktop-portal-gtk)$" },
+    { title = "^(File Upload|Choose wallpaper|Library)(.*)$" },
+    { class = "^(.*dialog.*)$" },
+    { title = "^(.*dialog.*)$" },
+    { class = "^(hyprland-share-picker)$"},
+}
+for _, m in ipairs(modalMatches) do hl.window_rule({ match = m, float = true }) end
+
+-- Ignore maximize requests from all apps. You'll probably like this.
+local suppressMaximizeRule = hl.window_rule({
+    name  = "suppress-maximize-events",
+    match = { class = ".*" },
+
+    suppress_event = "maximize",
+})
+-- suppressMaximizeRule:set_enabled(false)
+
+-- Fix some dragging issues with XWayland
+hl.window_rule({
+    name  = "fix-xwayland-drags",
+    match = {
+        class      = "^$",
+        title      = "^$",
+        xwayland   = true,
+        float      = true,
+        fullscreen = false,
+        pin        = false,
+    },
+
+    no_focus = true,
+})
+#+end_src

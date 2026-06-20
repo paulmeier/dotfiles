@@ -1,0 +1,62 @@
+#+title: uwsm Environment
+
+This is a literate configuration for the environment file read by
+[[https://github.com/Vladimir-csp/uwsm][uwsm]] (Universal Wayland Session
+Manager). The single source block below tangles to =env= in this directory.
+
+uwsm sources =~/.config/uwsm/env= as a POSIX shell script and exports the
+variables it defines into the Wayland session environment /before/ the
+compositor starts. Because these variables are present when the compositor
+and its first clients launch, they are the right place to set toolkit
+backends, cursor theming, and other session-wide knobs. Lines are typically
+of the form =export VAR=...=.
+
+* Variables
+
+Each exported variable below and what it affects:
+
+- =BROWSER= :: The user's preferred web browser. Programs that open URLs (mail
+  clients, terminals, =xdg-open= fallbacks) consult this; here it is set to
+  =firefox=.
+
+- =TERM= :: The terminal type advertised to programs. =xterm-kitty= tells
+  applications they are running inside the kitty terminal so they use kitty's
+  terminfo capabilities.
+
+- =QT_QPA_PLATFORM= :: The Qt Platform Abstraction backend list. =wayland;xcb=
+  tells Qt applications to prefer the native Wayland backend and fall back to
+  =xcb= (X11/XWayland) if Wayland is unavailable.
+
+- =QT_QPA_PLATFORMTHEME= :: The Qt platform theme plugin used to style Qt apps
+  and source colors/fonts/icons. =qt6ct= routes theming through the qt6ct
+  configuration tool.
+
+- =ELECTRON_OZONE_PLATFORM_HINT= :: Hint for Electron/Chromium's Ozone layer to
+  select a windowing backend. =auto= lets Electron apps choose Wayland when
+  available, improving scaling and input on Wayland.
+
+- =HYPRCURSOR_THEME= :: The cursor theme used by the hyprcursor format (Hyprland
+  ecosystem). Set to =Bibata-Modern-Ice=.
+
+- =HYPRCURSOR_SIZE= :: The hyprcursor cursor size in pixels (=24=).
+
+- =XCURSOR_THEME= :: The Xcursor theme name used by XWayland clients and toolkits
+  that read the classic Xcursor variables. Kept in sync with the hyprcursor
+  theme (=Bibata-Modern-Ice=).
+
+- =XCURSOR_SIZE= :: The Xcursor cursor size in pixels (=24=), matching the
+  hyprcursor size for consistent cursor sizing across Wayland and XWayland.
+
+* Source
+
+#+begin_src sh :tangle env :mkdirp yes
+export BROWSER=firefox
+export TERM=xterm-kitty
+export QT_QPA_PLATFORM="wayland;xcb"
+export QT_QPA_PLATFORMTHEME="qt6ct"
+export ELECTRON_OZONE_PLATFORM_HINT=auto
+export HYPRCURSOR_THEME="Bibata-Modern-Ice"
+export HYPRCURSOR_SIZE=24
+export XCURSOR_THEME="Bibata-Modern-Ice"
+export XCURSOR_SIZE=24
+#+end_src
