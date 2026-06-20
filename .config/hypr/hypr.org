@@ -200,7 +200,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("qs -c noctalia-shell")
     hl.exec_cmd("xhost +SI:localuser:root")
     -- GNOME-like additions:
-    hl.exec_cmd("hyprpm reload -n")          -- load enabled plugins (e.g. hyprexpo overview)
+    hl.exec_cmd("hyprpm reload -n")          -- load enabled plugins (e.g. hymission overview)
     hl.exec_cmd("hyprswitch init --show-title") -- GNOME-style Alt+Tab switcher daemon
     hl.exec_cmd("hypridle")                   -- idle: dim/lock/dpms/suspend
 end)
@@ -341,8 +341,10 @@ Configures pointer input and touchpad gestures.
   acceleration (1:1 movement).
 - =hl.gesture(...)= -- four touchpad swipe gestures: a 4-finger horizontal swipe
   switches =workspace=; 3-finger down/left map to =close= and =float=; 3-finger
-  *up* opens the Activities overview (=hyprexpo:expo toggle=, GNOME-style) via a
-  function action, since =expo= isn't one of the DSL's built-in action strings.
+  *up* opens the Activities overview (=hymission:toggle=, GNOME-style) via a
+  function action, since =toggle= isn't one of the DSL's built-in action strings.
+  (hyprexpo was removed from hyprland-plugins as unmaintained; hymission is the
+  maintainer-suggested replacement.)
 
 #+begin_src lua :tangle config/input.lua :mkdirp yes
 -- Input configuration
@@ -355,7 +357,7 @@ hl.config({
 
 hl.gesture({ fingers = 4, direction = "horizontal", action = "workspace" })
 hl.gesture({ fingers = 3, direction = "down",       action = "close" })
-hl.gesture({ fingers = 3, direction = "up",         action = function() hl.exec_cmd("hyprctl dispatch hyprexpo:expo toggle") end }) -- GNOME-style: open Activities overview
+hl.gesture({ fingers = 3, direction = "up",         action = function() hl.exec_cmd("hyprctl dispatch hymission:toggle") end }) -- GNOME-style: open Activities overview
 hl.gesture({ fingers = 3, direction = "left",       action = "float" })
 #+end_src
 
@@ -422,7 +424,7 @@ hl.bind(mainMod .. " + F",           hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(noctCall .. " lockScreen lock"))
 hl.bind(mainMod .. " + ALT + C",     hl.dsp.exec_cmd(noctCall .. " sessionMenu toggle"))
-hl.bind(mainMod .. " + grave",       hl.dsp.exec_cmd("hyprctl dispatch hyprexpo:expo toggle")) -- Activities overview
+hl.bind(mainMod .. " + grave",       hl.dsp.exec_cmd("hyprctl dispatch hymission:toggle")) -- Activities overview
 
 -- Change focus
 hl.bind(mainMod .. " + Left",  hl.dsp.focus({ direction = "left" }))
