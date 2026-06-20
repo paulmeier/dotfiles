@@ -565,3 +565,23 @@ Set =debug-on-error= to get backtraces. Tagged =:tangle no=.
 #+begin_src elisp :tangle no
 (setq debug-on-error t)
 #+end_src
+
+* Platform                                                              :doc:
+On Wayland the GTK/X11 Emacs build runs under XWayland, where the compositor
+does *not* deliver =Alt= as =Meta= -- =M-x= (and other =M-= chords) silently
+do nothing. Use the native Wayland (PGTK) build instead. On Arch/CachyOS:
+#+begin_example
+sudo pacman -S extra/emacs-wayland   # PGTK build; replaces `emacs', same version
+#+end_example
+The guard below warns at startup if a non-PGTK GUI build is running under a
+Wayland session, so the broken-=M-x= symptom can't return unnoticed.
+#+begin_src elisp
+(when (and (display-graphic-p)
+           (not (featurep 'pgtk))
+           (string= (or (getenv "XDG_SESSION_TYPE") "") "wayland"))
+  (display-warning
+   'config
+   (concat "Non-PGTK Emacs under Wayland: Alt/Meta (M-x) is likely broken "
+           "via XWayland. Install the PGTK build (e.g. `emacs-wayland').")
+   :warning))
+#+end_src
