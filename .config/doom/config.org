@@ -86,13 +86,9 @@ This function sets a variable that can be used for a conditional on home/work se
 ** Auto org babel tangle files
 List of Org files that should be auto-tangled on save.
 #+begin_src elisp
-(setq my/org-babel-tangle-files '("zshrc.org" "my-home.org" "my-work.org"))
+(setq my/org-babel-tangle-files '("zshrc.org" "my-home.org" "my-work.org" "work-config.org" "~/.config/my-work-python.org" "~/dotfiles/zshrc-work.org"))
 #+end_src
 
-** Identity
-#+begin_src elisp
-(setq user-full-name "Paul Meier")
-#+end_src
 
 * Shared Modules
 #+begin_src elisp
@@ -182,17 +178,80 @@ If non-nil, Dired tries to guess a default target directory.
   (setq epg-gpg-program "/usr/local/bin/gpg"
         epg-pinentry-mode 'ask))
 
-(setq epa-file-encrypt-to '("30C3D13A0FBCC050")
-      epa-file-select-keys 'silent)
-
 (epa-file-enable)
+#+end_src
+
+* Work Configuration (Conditional)
+Loads work-specific sensitive configuration only on the work machine.
+The work config lives in =work-config.org= which is gitignored.
+#+begin_src elisp
+(when (string= my-location "work")
+  (let ((work-config (expand-file-name "work-config.el" doom-private-dir)))
+    (if (file-exists-p work-config)
+        (progn
+          (load work-config)
+          (my-message "Loaded work configuration from %s" work-config))
+      (my-message "Warning: work-config.el not found. Tangle work-config.org to generate it."))))
+#+end_src
+
+* Jinja2 Support
+** YAML with Jinja2 Syntax
+#+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.yaml\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.j2.yml\\'" . jinja2-mode))
+(add-to-list 'auto-mode-alist '("\\.j2.yaml\\'" . jinja2-mode))
+
+(add-hook 'jinja2-mode-hook
+          (lambda ()
+            (setq jinja2-enable-indent t)))
+#+end_src
+
+* Copilot
+** Copilot Configuration
+Accept completion from copilot and fallback to company.
+#+begin_src elisp
+(use-package! copilot
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
+(use-package! gh-copilot-chat
+  :defer t
+  :config
+  (map! :leader
+        (:prefix ("o" . "open")
+         (:prefix ("c" . "copilot")
+          :desc "Chat" "c" #'gh-copilot-chat-display
+          :desc "Transient Menu" "t" #'gh-copilot-chat-transient
+          :desc "Add Buffer" "a" #'gh-copilot-chat-add-current-buffer
+          :desc "Remove Buffer" "r" #'gh-copilot-chat-del-current-buffer
+          :desc "Buffer List" "b" #'gh-copilot-chat-list
+          :desc "Reset" "R" #'gh-copilot-chat-reset
+          :desc "Explain" "e" #'gh-copilot-chat-explain
+          :desc "Review" "v" #'gh-copilot-chat-review
+          :desc "Docs" "d" #'gh-copilot-chat-doc
+          :desc "Fix" "f" #'gh-copilot-chat-fix
+          :desc "Optimize" "o" #'gh-copilot-chat-optimize
+          :desc "Tests" "T" #'gh-copilot-chat-test
+          :desc "Custom Prompt" "p" #'gh-copilot-chat-custom-prompt-function
+          :desc "Previous Message" "p" #'gh-copilot-chat-previous-message
+          :desc "Next Message" "n" #'gh-copilot-chat-next-message
+          :desc "Copy Last Response" "y" #'gh-copilot-chat-copy-last-response
+          :desc "Send Region" "s" #'gh-copilot-chat-send-region
+          :desc "Open Chat Popup" "w" #'gh-copilot-chat-popup))))
 #+end_src
 
 * Org
 ** Org Setup
 #+begin_src elisp
+(setq org-directory (or (getenv "ORG_DIRECTORY") "~/Org")
+      org-agenda-files (list (or (getenv "ORG_AGENDA_FILES") "~/Org")))
+
 (defun my/org-mode-setup ()
-  (setq ob-mermaid-cli-path "/opt/homebrew/bin/mmdc")
   (org-display-inline-images)
   (setq evil-auto-indent nil)
   (setq org-attach-id-dir ".attach")
@@ -201,7 +260,8 @@ If non-nil, Dired tries to guess a default target directory.
   (setq org-attach-dir-relative t)
   (setq org-image-actual-width nil)
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-use-property-inheritance t))
+  (setq org-use-property-inheritance t)
+  (setq org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex"))))
 
 (after! org
   (add-hook 'org-mode-hook #'my/org-mode-setup)
@@ -260,94 +320,43 @@ If non-nil, Dired tries to guess a default target directory.
 #+end_src
 
 * Denote
-** Use Package
+** Configuration
 #+begin_src elisp
-(use-package! denote)
+(use-package! denote
+  :custom
+  (denote-directory "~/Notes")
+  (denote-prompts '(subdirectory title keywords template))
+  (denote-templates '((generic . "")))
+  (denote-known-keywords '("nm" "technology" "reference" "guide" "project" "moc" "found" "caas" "education" "personal"))
+  (denote-date-prompt-use-org-read-date t))
 #+end_src
 
 ** Keybindings
-*** Denote Keybindings
 #+begin_src elisp
 (map! :leader
-      (:prefix ("e" . "denote")
-       :desc "New Note" "n" #'denote
-       :desc "Insert Link" "i" #'denote-insert-link
-       :desc "Journal" "j" #'denote-journal-new-or-existing-entry
-       :desc "Find in Notes" "f" #'consult-notes-search-in-all-notes
-       :desc "Search Notes" "s" #'consult-notes))
+      (:prefix ("e" . "notes")
+       :desc "New Note"        "n" #'denote
+       :desc "Insert Link"     "i" #'denote-link
+       :desc "Journal Entry"   "j" #'denote-journal-extras-new-or-existing-entry
+       :desc "Find Note"       "f" #'consult-notes
+       :desc "Search Notes"    "s" #'consult-notes-search-in-all-notes
+       :desc "Follow Link"     "l" #'denote-link-or-create
+       :desc "Backlinks"       "b" #'denote-backlinks
+       :desc "Find by Tag"     "t" #'denote-keywords-find))
 #+end_src
 
-*** Expand Org Source Block Keybindings
+** Expand Org Source Block
 #+begin_src elisp
 (map! :leader
       :desc "Expand Org source block"
       "y b" #'org-babel-expand-src-block)
 #+end_src
 
-*** Lit Minor Mode Keybindings
-#+begin_src elisp
-(map! :leader
-      :desc "Toggle lit mode"
-      "t W" #'lit-mode
-      :desc "Toggle comfy mode"
-      "t C" #'comfy-mode)
-#+end_src
-
 ** Consult Notes
-Consult note dir sources is set in the machine specific profile.
 #+begin_src elisp
 (use-package! consult-notes
   :config
-  (when (locate-library "denote")
-    (consult-notes-denote-mode)))
-  ;; search only for text files in denote dir
-  ;; (setq consult-notes-denote-files-function (function denote-directory-text-only-files)))
-#+end_src
-
-** Denote Journal
-#+begin_src elisp
-(use-package! denote-journal
-  :after denote
-  :commands (denote-journal-new-entry
-             denote-journal-new-or-existing-entry
-             denote-journal-link-or-create-entry)
-  :hook (calendar-mode . denote-journal-calendar-mode)
-  :config
-  ;; Put journal files under ~/Sync/paul-notes-org/journal
-  ;; (default is a "journal" subdir of `denote-directory`).
-  (setq denote-journal-directory
-        (expand-file-name "journal" denote-directory))
-
-  ;; Default keyword in the filename for journal entries.
-  (setq denote-journal-keyword "journal")
-
-  ;; How titles are generated, e.g. "Tuesday 1 April 2025".
-  (setq denote-journal-title-format 'day-date-month-year)
-
-  ;; How often `new-or-existing` groups entries: daily/weekly/monthly/yearly.
-  (setq denote-journal-interval 'daily))
-#+end_src
-
-
-* Copilot
-** Copilot Keybindings
-#+begin_src elisp
-(map! :leader
-      (:prefix ("l" . "co-chat")
-       :desc "Chat Prompt" "p" #'copilot-chat-prompt
-       :desc "Reset" "r" #'copilot-chat-reset
-       :desc "Chat buffers" "d" #'copilot-chat-display
-       :desc "Explain selected" "e" #'copilot-chat-explain
-       :desc "Review selected" "v" #'copilot-chat-review
-       :desc "Document selected" "c" #'copilot-chat-doc
-       :desc "Fix selected" "f" #'copilot-chat-fix
-       :desc "Optimize selected" "o" #'copilot-chat-optimize
-       :desc "Write tests for selected" "t" #'copilot-chat-test
-       :desc "Custom prompt with selection" "p" #'copilot-chat-custom-prompt-selection
-       :desc "Current buffer to copilot chat" "s" #'copilot-chat-add-current-buffer
-       :desc "Buffer list" "b" #'copilot-chat-list
-       :desc "Previous prompt history" "h" #'copilot-chat-prompt-history-previous
-       :desc "Next prompt history" "n" #'copilot-chat-prompt-history-next))
+  (consult-notes-denote-mode))
 #+end_src
 
 * YAS Snippets
@@ -373,36 +382,6 @@ Consult note dir sources is set in the machine specific profile.
 ;; (setq-hook! 'js-jsx-mode-hook +format-with 'standard)
 ;; (setq-hook! 'rjsx-mode-hook +format-with 'standard)
 ;; (setq-hook! 'js-mode-hook +format-with 'standard)
-#+end_src
-
-* Citar
-#+begin_src elisp
-(use-package! citar
-  :defer t
-  :custom
-  ;; Your bibliography file
-  (citar-bibliography '("~/Sync/paul-references-org/references.bib"))
-
-  ;; Optional: where your PDFs are stored
-  (citar-library-paths '("~/Sync/paul-references-org/library"))
-
-  ;; Optional: where notes live (before Citar-Denote)
-  (citar-notes-paths '("~/Sync/paul-notes-org/literature"))
-
-  ;; This makes Citar the default Org-cite processor
-  (org-cite-activate-processor 'citar)
-
-  ;; Use Citar for citation insertion UI
-  (org-cite-insert-processor 'citar)
-
-  ;; Use Citar for following citations (open note / bib entry / URL)
-  (org-cite-follow-processor 'citar)
-
-  ;; For export: Citar integrates with CSL
-  (org-cite-export-processors
-   '((html . (csl "chicago-author-date.csl"))
-     (latex . biblatex)
-     (t . (csl "chicago-author-date.csl")))))
 #+end_src
 
 * Debug Emacs

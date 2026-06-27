@@ -8,6 +8,10 @@
 
 ;; AI
 ;;(package! gptel)
+(package! copilot
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+(package! gh-copilot-chat
+  :recipe (:host github :repo "chep/gh-copilot-chat.el" :files ("*.el")))
 
 ;; Org
 ;;(package! org-super-agenda)
@@ -31,12 +35,12 @@
 
 ;; Notes Packages
 (package! denote)
+(package! denote-journal)
 (package! denote-org)
 (package! denote-menu)
-(package! denote-journal)
 (package! consult-denote)
-(package! consult-notes)
 (package! citar-denote)
+(package! consult-notes)
 
 ;; Writing Packages
 (package! olivetti)
@@ -48,10 +52,7 @@
 (package! drag-stuff)
 
 ;; AI
-;; (package! copilot-chat
-;;   :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
-;; (package! copilot)
-(package! gptel :recipe (:nonrecursive t))
+;;(package! gptel :recipe (:nonrecursive t))
 
 ;; Kubernetes
 ;;(package! kubernetes)
@@ -59,14 +60,11 @@
 ;;(package! kubedoc)
 ;;(package! k8s-mode)
 
-;; Loaded packages for work
-(when (string= (system-name) "S427544")
-  (package! lab) ;; Gitlab
-  (package! impostman) ;; Postman importing
-  )
-
-;; Obsidian
-(package! obsidian)
+(package! lab) ;; Gitlab
+(package! impostman) ;; Postman importing
 
 ;; Jupyter
 ;; (package! jupyter)
+(package! mcp-server
+  :recipe (:type git :host github :repo "rhblind/emacs-mcp-server"
+           :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh")))
