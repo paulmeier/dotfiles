@@ -40,6 +40,9 @@
 ;; Editing
 (package! drag-stuff)
 
+;; Templating (jinja2-mode for .j2 / .j2.yml templates; see config.org "Jinja2 templates")
+(package! jinja2-mode)
+
 ;; AI
 (package! copilot-chat
   :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))

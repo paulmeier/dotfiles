@@ -75,9 +75,19 @@ zshrc-home.sh
 zshrc-home.org
 .zshrc
 
-# Home for now
+# Per-machine private code, loaded by config.org's conditional machine loading
+# from ~/.config/<location>/my-<location>.el. Never commit these to the public repo.
 my-mac.el
 my-mac.org
+my-work.el
+my-work.org
+my-home.el
+my-home.org
+my-desktop.el
+my-desktop.org
+.config/work/
+.config/home/
+.config/desktop/
 
 # Desktop/system config: generated state & reinstallable bloat (dirs are tracked partially)
 .config/fish/fish_variables
