@@ -119,6 +119,11 @@ If `local.el' already exists and FORCE (prefix arg) is nil, write to
 ** Loading =local.el=
 Loaded early so subsequent blocks can see the variables. If absent, we
 ~setq~ each var to its default and warn — Emacs still starts up usable.
+
+As a last resort, =my-location= is derived from the hostname so a
+freshly-cloned machine — especially the work box (=S427544=) — still
+self-identifies before =local.el= exists. A value set in =local.el=
+always wins; the hostname table is only the fallback.
 #+begin_src elisp
 (dolist (entry my/local-vars)
   (let ((sym (nth 0 entry))
@@ -131,7 +136,45 @@ Loaded early so subsequent blocks can see the variables. If absent, we
       (load local-file nil 'nomessage)
     (my-message "No local.el found at %s. Run M-x my/write-local-template" local-file)))
 
+;; Hostname-based fallback for `my-location' (only when local.el left it blank).
+(unless (my/non-empty my-location)
+  (setq my-location
+        (cond
+         ((member (system-name) '("S427544")) "work")
+         ((member (system-name) '("Pauls-MacBook-Air.local" "MacBook-Pro.local")) "home")
+         ((member (system-name) '("chrono")) "desktop")
+         (t ""))))
+
 (my-message "Current location: %s" (or (my/non-empty my-location) "unknown"))
+#+end_src
+
+* Per-machine private code (conditional loading)
+Some configuration is private (work-sensitive code, credentials-adjacent
+glue) and must never live in this public repo. Such code lives outside the
+tree in =~/.config/<location>/my-<location>.el= — e.g. on the work machine,
+=~/.config/work/my-work.el=. Those files are gitignored ([[*Per-machine config (=local.el=)][see =local.el=]]) and
+loaded here only when present, keyed off [[*Per-machine config (=local.el=)][=my-location=]].
+
+This is the counterpart to =local.el=: =local.el= holds *values* (paths,
+keys) declaratively, while this loads private *code* for the active machine.
+On a machine with no such file (the common case) the block is a no-op.
+
+We =load= the file directly rather than =require= it, so the private file
+does *not* need a trailing =(provide 'my-<location>)=; any =my-<location>.el=
+just works. The directory is still added to =load-path= so the private file
+can =require= its own helpers if it wants to.
+#+begin_src elisp
+(let ((loc (my/non-empty my-location)))
+  (when loc
+    (let* ((config-dir (expand-file-name (format "~/.config/%s" loc)))
+           (config-lib (format "my-%s" loc))
+           (lib (progn (add-to-list 'load-path config-dir)
+                       (locate-library config-lib))))
+      (if lib
+          (progn
+            (load lib nil 'nomessage)
+            (my-message "Loaded private config %s" lib))
+        (my-message "No private config %s in %s (ok)." config-lib config-dir)))))
 #+end_src
 
 * Identity
@@ -222,6 +265,17 @@ title bar and =maximized= is effectively handled by the WM anyway.
   (with-temp-buffer
     (funcall mode)
     (message "Formatter for %s: %s" mode +format-with)))
+#+end_src
+
+** Jinja2 templates
+Jinja2-templated files — including =.j2.yml= / =.j2.yaml= (Ansible, Helm,
+Salt) — open in =jinja2-mode= (package declared in =packages.el=). Plain
+=.yml= / =.yaml= are intentionally left to Doom's =:lang yaml +tree-sitter=
+mode, so this only claims the =.j2= variants.
+#+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.j2\\'" . jinja2-mode))
+(add-to-list 'auto-mode-alist '("\\.j2\\.ya?ml\\'" . jinja2-mode))
+(add-hook 'jinja2-mode-hook (lambda () (setq jinja2-enable-indent t)))
 #+end_src
 
 * Encryption
@@ -332,9 +386,16 @@ title bar and =maximized= is effectively handled by the WM anyway.
 
 ** Babel auto-tangle for selected files
 Saves of files whose basename is in =my/org-babel-tangle-files= will
-auto-tangle (e.g. =zshrc.org=).
+auto-tangle (e.g. =zshrc.org=). The per-machine private sources are listed
+too so that, on the machine where they exist (e.g. =zshrc-work.org= /
+=my-work.org= on the work box), editing them re-tangles the loadable output.
+Listing a file that doesn't exist on this machine is harmless — the hook
+only fires when such a file is actually saved.
 #+begin_src elisp
-(setq my/org-babel-tangle-files '("zshrc.org"))
+(setq my/org-babel-tangle-files
+      '("zshrc.org"
+        "zshrc-work.org" "zshrc-home.org"
+        "my-work.org" "my-home.org" "my-desktop.org"))
 
 (defun my/tangle-org-files-in-directory (directory)
   "Tangle all .org files in DIRECTORY."

@@ -1,5 +1,29 @@
 #+title: Readme
 
+* Machines
+These dotfiles drive three machines. Per-machine differences are handled in
+two complementary ways, never by editing tracked files:
+
+| Location  | =system-name=                              | Notes                                   |
+|-----------+--------------------------------------------+-----------------------------------------|
+| =work=    | =S427544=                                  | Sources =zshrc-work.sh=; loads private =~/.config/work/my-work.el=. |
+| =home=    | =Pauls-MacBook-Air.local= / =MacBook-Pro.local= | macOS, Homebrew, Guile paths.      |
+| =desktop= | =chrono=                                   | CachyOS / Hyprland / Guix — the bulk of this repo. |
+
+** How per-machine config works
+1. *Declarative values* — paths, mail address, GPG key, opt-in features live
+   in =~/.config/doom/local.el= (gitignored). Run =M-x my/write-local-template=
+   to scaffold it. See the [[file:.config/doom/config.org][doom config]] for the variable schema.
+2. *Private code* — work-sensitive elisp lives outside the repo in
+   =~/.config/<location>/my-<location>.el= (also gitignored) and is loaded
+   automatically when present, keyed off =my-location=.
+3. *Shell* — =zshrc.org= tangles =source zshrc-work.sh= only on =S427544= and
+   =source zshrc-home.sh= only on the home Mac. The =zshrc-*.sh= build outputs
+   are gitignored.
+
+=my-location= is taken from =local.el= when set, otherwise auto-detected from
+the hostname (table above). Nothing work-specific is ever committed here.
+
 * Requirements
 ** MAC
 *** GNU Stow

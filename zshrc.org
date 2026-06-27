@@ -11,13 +11,14 @@ source "$HOME/zshrc-work.sh"
 #+end_src
 
 * Home Stuff
-if running on main home machine load home stuff.
-#+begin_src bash :tangle (if (string-equal (system-name) "Pauls-MacBook-Air.local") ".zshrc" "no")
+if running on a home Mac load home stuff. (Matches the home hostnames in
+the doom =my-location= table and the README machine table.)
+#+begin_src bash :tangle (if (member (system-name) '("Pauls-MacBook-Air.local" "MacBook-Pro.local")) ".zshrc" "no")
 source "$HOME/zshrc-home.sh"
 #+end_src
 
 ** Guile
-#+begin_src bash :tangle (if (string-equal (system-name) "Pauls-MacBook-Air.local") ".zshrc" "no")
+#+begin_src bash :tangle (if (member (system-name) '("Pauls-MacBook-Air.local" "MacBook-Pro.local")) ".zshrc" "no")
 export GUILE_LOAD_PATH="/opt/homebrew/share/guile/site/3.0"
 export GUILE_LOAD_COMPILED_PATH="/opt/homebrew/lib/guile/3.0/site-ccache"
 export GUILE_SYSTEM_EXTENSIONS_PATH="/opt/homebrew/lib/guile/3.0/extensions"
