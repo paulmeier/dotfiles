@@ -102,10 +102,10 @@ If `local.el' already exists and FORCE (prefix arg) is nil, write to
 ;; variables. If absent, we `setq' each var to its default and warn -- Emacs
 ;; still starts up usable.
 ;;
-;; As a last resort, `my-location' is derived from the hostname so a
-;; freshly-cloned machine -- especially the work box (work-host) -- still
-;; self-identifies before local.el exists. A value set in local.el always
-;; wins; the hostname table is only the fallback.
+;; As a last resort, `my-location' comes from the DOTFILES_LOCATION
+;; environment variable (set it in the untracked ~/.zshrc.local), so a
+;; freshly-cloned machine still self-identifies before local.el exists. A
+;; value set in local.el always wins. Hostnames stay out of this public file.
 (dolist (entry my/local-vars)
   (let ((sym (nth 0 entry))
         (default (nth 1 entry)))
@@ -117,14 +117,9 @@ If `local.el' already exists and FORCE (prefix arg) is nil, write to
       (load local-file nil 'nomessage)
     (my-message "No local.el found at %s. Run M-x my/write-local-template" local-file)))
 
-;; Hostname-based fallback for `my-location' (only when local.el left it blank).
+;; Environment fallback for `my-location' (only when local.el left it blank).
 (unless (my/non-empty my-location)
-  (setq my-location
-        (cond
-         ((member (system-name) '("work-host")) "work")
-         ((member (system-name) '("home-mac" "home-mac-2")) "home")
-         ((member (system-name) '("desktop-host")) "desktop")
-         (t ""))))
+  (setq my-location (or (getenv "DOTFILES_LOCATION") "")))
 
 (my-message "Current location: %s" (or (my/non-empty my-location) "unknown"))
 
@@ -184,7 +179,7 @@ If `local.el' already exists and FORCE (prefix arg) is nil, write to
     ;; Module default backend is 'lieer (Gmail-OAuth only). Point `<localleader> u'
     ;; at our mailsync script (trash-move step + mbsync + notmuch new) so the
     ;; manual sync runs the SAME path as the launchd auto-sync.
-    (setq +notmuch-sync-backend "~/.local/bin/mailsync")
+    (setq +notmuch-sync-backend (expand-file-name "~/.local/bin/mailsync"))
     ;; Land on the inbox search instead of the notmuch-hello buffer.
     (setq +notmuch-home-function (lambda () (notmuch-search "tag:inbox")))
     ;; Doom's notmuch module already sets message-send-mail-with-sendmail and
@@ -304,6 +299,82 @@ If `local.el' already exists and FORCE (prefix arg) is nil, write to
         epa-file-select-keys 'silent))
 
 (epa-file-enable)
+
+;;; Secrets (Proton Pass)
+;;
+;; Secrets come from Proton Pass through `pass-cli', via my package
+;; https://github.com/paulmeier/proton-pass.el (see packages.el). Nothing is
+;; fetched at startup; `pass-cli' takes a few seconds per call, so
+;; auth-source hands out a lazy secret and fetched values are cached in
+;; memory for an hour.
+;;
+;; - `proton-pass' goes first in `auth-sources': any `auth-source-search'
+;;   (gptel, smtpmail, forge, ...) is answered from
+;;   `proton-pass-auth-source-alist' before ~/.authinfo.gpg is consulted.
+;; - In config code, use (proton-pass-get "pass://Vault/Item/field").
+;; - The Proton Pass SSH agent socket is exported so magit/tramp use the SSH
+;;   keys stored in Pass.
+;; - SPC P P opens a pass.el-style browser of the vault; SPC P has the
+;;   password-store-style commands (insert, generate, edit, rename, trash).
+;;
+;; Item titles aren't secret, so the mapping below lives in this public file.
+;; Only map items that exist and whose titles are unique: a missing item
+;; errors instead of falling back to ~/.authinfo.gpg.
+(use-package! proton-pass
+  :demand t ; cheap to load: no pass-cli calls until a secret is used
+  :config
+  (setq proton-pass-vault "Personal"
+        proton-pass-auth-source-alist
+        '(;; (HOST USER URI) -- USER nil matches any user.
+          ;; ("api.anthropic.com" "apikey" "pass://Personal/Anthropic API/password")
+          ;; ("127.0.0.1" nil "pass://Personal/Proton Mail Bridge/password")
+          ))
+  (proton-pass-auth-source-enable)
+  (proton-pass-use-ssh-agent))
+
+(map! :leader
+      (:prefix ("P" . "proton pass")
+       :desc "Browse vault"        "P" #'proton-pass
+       :desc "View item"           "v" #'proton-pass-view
+       :desc "Copy password"       "p" #'proton-pass-copy-password
+       :desc "Copy username"       "u" #'proton-pass-copy-username
+       :desc "Copy field"          "f" #'proton-pass-copy-field
+       :desc "Copy TOTP code"      "t" #'proton-pass-totp
+       :desc "Open URL"            "o" #'proton-pass-url
+       :desc "Insert item"         "i" #'proton-pass-insert
+       :desc "Generate item"       "g" #'proton-pass-generate
+       :desc "Edit field"          "e" #'proton-pass-edit
+       :desc "Rename item"         "r" #'proton-pass-rename
+       :desc "Trash item"          "d" #'proton-pass-remove
+       :desc "Password at point"   "G" #'proton-pass-insert-generated-password
+       :desc "Switch vault"        "V" #'proton-pass-switch-vault
+       :desc "Clear cache"         "c" #'proton-pass-clear-cache
+       :desc "Session info"        "?" #'proton-pass-info))
+
+;; pass.el-style single keys in the browser and item views. Bound for evil
+;; normal state explicitly (not an overriding map, which would inherit
+;; special-mode's SPC and shadow the leader); j/k/gg still move.
+(map! :after proton-pass
+      :map (proton-pass-mode-map proton-pass-view-mode-map)
+      :n "w" #'proton-pass-copy-password
+      :n "b" #'proton-pass-copy-username
+      :n "f" #'proton-pass-copy-field
+      :n "o" #'proton-pass-totp
+      :n "U" #'proton-pass-url
+      :n "e" #'proton-pass-edit
+      :n "r" #'proton-pass-rename
+      :n "d" #'proton-pass-remove
+      :n "i" #'proton-pass-insert
+      :n "I" #'proton-pass-generate
+      :n "V" #'proton-pass-switch-vault
+      :n "q" #'quit-window
+      :n "?" #'describe-mode
+      :map proton-pass-mode-map
+      :n "RET" #'proton-pass-view
+      :n "v"   #'proton-pass-view
+      :n "gr"  #'proton-pass-refresh
+      :map proton-pass-view-mode-map
+      :n "gr"  #'proton-pass-view-refresh)
 
 ;;; Tools
 
@@ -587,7 +658,8 @@ If `local.el' already exists and FORCE (prefix arg) is nil, write to
        :desc "Previous prompt history"         "h" #'copilot-chat-prompt-history-previous
        :desc "Next prompt history"             "n" #'copilot-chat-prompt-history-next))
 
-;; GPTel. The Anthropic key is read from auth-source (~/.authinfo.gpg). LM
+;; GPTel. The Anthropic key is read from auth-source: Proton Pass if mapped in
+;; `proton-pass-auth-source-alist', else ~/.authinfo.gpg. LM
 ;; Studio backend is configured but only useful when the local server is
 ;; running.
 (use-package! gptel
