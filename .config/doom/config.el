@@ -145,41 +145,40 @@
   (proton-pass-use-ssh-agent))
 
 (map! :leader
-      (:prefix ("P" . "proton pass")
-       :desc "Browse vault"        "P" #'proton-pass
-       :desc "View item"           "v" #'proton-pass-view
-       :desc "Copy password"       "p" #'proton-pass-copy-password
-       :desc "Copy username"       "u" #'proton-pass-copy-username
-       :desc "Copy field"          "f" #'proton-pass-copy-field
-       :desc "Copy TOTP code"      "t" #'proton-pass-totp
-       :desc "Open URL"            "o" #'proton-pass-url
-       :desc "Insert item"         "i" #'proton-pass-insert
-       :desc "Generate item"       "g" #'proton-pass-generate
-       :desc "Edit field"          "e" #'proton-pass-edit
-       :desc "Rename item"         "r" #'proton-pass-rename
-       :desc "Trash item"          "d" #'proton-pass-remove
-       :desc "Password at point"   "G" #'proton-pass-insert-generated-password
-       :desc "Switch vault"        "V" #'proton-pass-switch-vault
-       :desc "Clear cache"         "c" #'proton-pass-clear-cache
-       :desc "Session info"        "?" #'proton-pass-info))
+      (:prefix ("k" . "proton pass")
+       :desc "Browse vault"          "b" #'proton-pass
+       :desc "View item"             "v" #'proton-pass-view
+       :desc "Copy password"         "p" #'proton-pass-copy-password
+       :desc "Copy username"         "u" #'proton-pass-copy-username
+       :desc "Copy field"            "f" #'proton-pass-copy-field
+       :desc "Copy TOTP code"        "t" #'proton-pass-totp
+       :desc "Open URL"              "o" #'proton-pass-url
+       :desc "Insert item"           "i" #'proton-pass-insert
+       :desc "Create with generated" "c" #'proton-pass-generate
+       :desc "Edit field"            "e" #'proton-pass-edit
+       :desc "Rename item"           "r" #'proton-pass-rename
+       :desc "Trash item"            "d" #'proton-pass-remove
+       :desc "Switch vault"          "s" #'proton-pass-switch-vault
+       :desc "Write password here"   "w" #'proton-pass-insert-generated-password
+       :desc "Clear cache"           "x" #'proton-pass-clear-cache
+       :desc "Account info"          "a" #'proton-pass-info))
 
-;; Bound per evil state rather than as an overriding map, which would inherit
-;; special-mode's SPC and shadow the leader.
+;; Same letters as the leader menu. Bound per evil state rather than as an
+;; overriding map, which would inherit special-mode's SPC and shadow the leader.
 (map! :after proton-pass
       :map (proton-pass-mode-map proton-pass-view-mode-map)
-      :n "w" #'proton-pass-copy-password
-      :n "b" #'proton-pass-copy-username
+      :n "p" #'proton-pass-copy-password
+      :n "u" #'proton-pass-copy-username
       :n "f" #'proton-pass-copy-field
-      :n "o" #'proton-pass-totp
-      :n "U" #'proton-pass-url
+      :n "t" #'proton-pass-totp
+      :n "o" #'proton-pass-url
+      :n "i" #'proton-pass-insert
+      :n "c" #'proton-pass-generate
       :n "e" #'proton-pass-edit
       :n "r" #'proton-pass-rename
       :n "d" #'proton-pass-remove
-      :n "i" #'proton-pass-insert
-      :n "I" #'proton-pass-generate
-      :n "V" #'proton-pass-switch-vault
+      :n "s" #'proton-pass-switch-vault
       :n "q" #'quit-window
-      :n "?" #'describe-mode
       :map proton-pass-mode-map
       :n "RET" #'proton-pass-view
       :n "v"   #'proton-pass-view
@@ -276,8 +275,8 @@
        :desc "Search Notes"    "s" #'consult-notes))
 
 (map! :leader
-      :desc "Toggle lit mode"   "t W" #'lit-mode
-      :desc "Toggle comfy mode" "t C" #'comfy-mode)
+      :desc "Toggle lit mode"   "t i" #'lit-mode
+      :desc "Toggle comfy mode" "t o" #'comfy-mode)
 
 ;; Template bodies are files inside the notes directory.
 (defun my/denote-template-from-file (filename)
@@ -392,7 +391,7 @@
        :desc "Fix selected"                    "f" #'copilot-chat-fix
        :desc "Optimize selected"               "o" #'copilot-chat-optimize
        :desc "Write tests for selected"        "t" #'copilot-chat-test
-       :desc "Custom prompt with selection"    "P" #'copilot-chat-custom-prompt-selection
+       :desc "Ask about selection"             "a" #'copilot-chat-custom-prompt-selection
        :desc "Current buffer to copilot chat"  "s" #'copilot-chat-add-current-buffer
        :desc "Buffer list"                     "b" #'copilot-chat-list
        :desc "Previous prompt history"         "h" #'copilot-chat-prompt-history-previous
