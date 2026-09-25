@@ -26,6 +26,22 @@
 ;; Writing
 (package! olivetti)
 
+;; Emacs Writing Studio (modules/ews.el); the rest of its packages are
+;; already pulled in by Doom modules or the sections above.
+(package! spacious-padding)
+(package! balanced-windows)
+(package! org-fragtog)
+(package! nov)
+(package! biblio)
+(package! org-web-tools)
+(package! openwith)
+(package! denote-sequence)
+(package! denote-explore)
+(package! titlecase)
+(package! lorem-ipsum)
+(package! fountain-mode)
+(package! ox-epub)
+
 ;; Key Quiz
 (package! key-quiz)
 

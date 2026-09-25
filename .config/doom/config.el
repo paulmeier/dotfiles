@@ -61,6 +61,8 @@
 (require 'book-note)
 (require 'lit-mode)
 (require 'comfy-mode)
+(require 'ews)
+(setq ews-bibtex-directory my/references-library)
 
 ;;; UI
 
@@ -276,7 +278,9 @@
 
 (map! :leader
       :desc "Toggle lit mode"   "t i" #'lit-mode
-      :desc "Toggle comfy mode" "t o" #'comfy-mode)
+      :desc "Toggle comfy mode" "t o" #'comfy-mode
+      ;; Evil off, EWS keys on; C-c w q comes back.
+      :desc "Emacs Writing Studio" "t e" #'ews-mode)
 
 ;; Template bodies are files inside the notes directory.
 (defun my/denote-template-from-file (filename)
@@ -416,15 +420,17 @@
 
 ;; Exposes this Emacs to MCP clients over a local Unix socket at
 ;; ~/.config/emacs/.local/cache/emacs-mcp-server.sock (clients connect with
-;; `socat - UNIX-CONNECT:<socket>').
+;; `socat - UNIX-CONNECT:<socket>'). Never started automatically and not
+;; registered with any MCP client; start it by hand with SPC o M s.
 (use-package! mcp-server
-  :defer t
+  :commands (mcp-server-start-unix mcp-server-stop mcp-server-status)
   :init
   (setq mcp-server-emacs-tools-enabled 'all)
-  (add-hook 'emacs-startup-hook
-            (lambda ()
-              (require 'mcp-server)
-              (mcp-server-start-unix))))
+  (map! :leader
+        (:prefix ("o M" . "MCP server")
+         :desc "Start"  "s" #'mcp-server-start-unix
+         :desc "Stop"   "k" #'mcp-server-stop
+         :desc "Status" "i" #'mcp-server-status)))
 
 ;;; Feeds
 
