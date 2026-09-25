@@ -28,10 +28,6 @@ autoload -Uz compinit && compinit
 export PATH="$HOME/.config/emacs/bin:$PATH"
 export DOOMDIR="$HOME/.config/doom"
 
-# Emacs Writing Studio profile
-ews() { open -na Emacs --args --init-directory "$HOME/.config/ews" "$@"; }
-ews-nw() { emacs -nw --init-directory "$HOME/.config/ews" "$@"; }
-
 # --- Languages & tools -------------------------------------------------------
 alias python='python3'
 alias pip='python3 -m pip'
