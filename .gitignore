@@ -68,6 +68,14 @@ flycheck_*.el
 .config/doom/local.el
 .config/doom/local.el.template
 
+# Emacs Writing Studio profile (.config/ews). Only my own files are tracked;
+# the upstream init.el/ews.el/LICENSE are fetched by bootstrap.sh and the
+# rest is runtime state.
+.config/ews/*
+!.config/ews/user.el
+!.config/ews/local.el
+!.config/ews/bootstrap.sh
+
 # Zsh - Dont include work and require it to be built
 zshrc-work.sh
 zshrc-work.org
