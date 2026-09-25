@@ -1,120 +1,28 @@
-# -*- mode: gitignore; -*-
+# Allowlist: this PUBLIC repo tracks only Doom, zsh and Starship config.
+# Everything else is ignored by default, so nothing lands here by accident.
+# To track something new, add a `!` rule below and make sure it's secret-free.
+/*
+!/.gitignore
+!/.stow-local-ignore
+!/README.org
+!/.zshrc
+!/.config/
+/.config/*
+!/.config/doom/
+!/.config/zsh/
+!/.config/starship.toml
+
+# Doom: per-machine settings (paths, mail, GPG key, location)
+/.config/doom/local.el
+/.config/doom/local.el.template
+
+# Never, anywhere
+.DS_Store
 *~
 \#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
 .\#*
-.DS_Store
-.idea
-*.log
-tmp/
-
-# Org-mode
-.org-id-locations
-*_archive
-
-# flymake-mode
-*_flymake.*
-
-# eshell files
-/eshell/history
-/eshell/lastdir
-
-# elpa packages
-/elpa/
-
-# reftex files
-*.rel
-
-# AUCTeX auto folder
-/auto/
-
-# cask packages
-.cask/
-dist/
-
-# Flycheck
-flycheck_*.el
-
-# server auth directory
-/server/
-
-# projectiles files
-.projectil 
-
-# directory configuration
-.dir-locals.el
-
-# Wut
-.mypy_cache/
-
-# Soon
-.authinfo.gpg
-
-# Custom Emacs Project
-.config/pmacs/elpa
-.config/pmacs/elpaca
-.config/pmacs/eln-cache
-.config/pmacs/auto-save-list
-.config/pmacs/recentf
-
-# Per-machine doom settings (paths, GPG key, opt-in features)
-.config/doom/local.el
-.config/doom/local.el.template
-
-# Emacs Writing Studio profile (.config/ews). Only my own files are tracked;
-# the upstream init.el/ews.el/LICENSE are fetched by bootstrap.sh and the
-# rest is runtime state.
-.config/ews/*
-!.config/ews/user.el
-!.config/ews/local.el
-!.config/ews/bootstrap.sh
-
-# Zsh - Dont include work and require it to be built
-zshrc-work.sh
-zshrc-work.org
-zshrc-home.sh
-zshrc-home.org
-.zshrc
-
-# Per-machine private code, loaded by doom config.el's conditional machine loading
-# from ~/.config/<location>/my-<location>.el. Never commit these to the public repo.
-my-mac.el
-my-mac.org
-my-work.el
-my-work.org
-my-home.el
-my-home.org
-my-desktop.el
-my-desktop.org
-.config/work/
-.config/home/
-.config/desktop/
-
-# Desktop/system config: generated state & reinstallable bloat (dirs are tracked partially)
-.config/fish/fish_variables
-.config/micro/syntax/
-.config/noctalia/plugins/
-.config/gtk-4.0/thumbnail.png
-*.bak
-
-# Literate config: tangled outputs. Source of truth is the adjacent .org file;
-# regenerate with `org-babel-tangle` (these are gitignored).
-.config/hypr/hyprland.lua
-.config/hypr/xdph.conf
-.config/hypr/config/*.lua
-.config/hypr/hypridle.conf
-.config/kitty/kitty.conf
-.config/alacritty/alacritty.toml
-.config/fish/config.fish
-.config/btop/btop.conf
-.config/micro/settings.json
-.config/qt6ct/qt6ct.conf
-.config/xsettingsd/xsettingsd.conf
-.config/gtk-3.0/settings.ini
-.config/uwsm/env
-.config/mimeapps.list
-.config/git/ignore
+*.elc
+.authinfo*
+.env
+.env.*
+*.local

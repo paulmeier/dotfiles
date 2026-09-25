@@ -58,6 +58,13 @@
 ;; Misc
 (package! obsidian)
 
+;; Secrets -- my own package. Use the local checkout when present so edits
+;; are picked up (`doom sync' to rebuild); otherwise pull from GitHub.
+(package! proton-pass
+  :recipe (if (file-directory-p "~/Projects/proton-pass.el")
+              '(:local-repo "~/Projects/proton-pass.el" :files ("proton-pass.el"))
+            '(:host github :repo "paulmeier/proton-pass.el" :files ("proton-pass.el"))))
+
 ;;; Opt-in features --------------------------------------------------------
 ;; Add the corresponding symbols to `my/local-features' in local.el to enable.
 

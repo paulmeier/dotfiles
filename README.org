@@ -1,93 +1,53 @@
-#+title: Readme
+#+title: dotfiles
 
-* Machines
-These dotfiles drive three machines. Per-machine differences are handled in
-two complementary ways, never by editing tracked files:
+Doom Emacs, zsh and Starship. Nothing else is tracked (see =.gitignore=,
+which is an allowlist).
 
-| Location  | =system-name=                              | Notes                                   |
-|-----------+--------------------------------------------+-----------------------------------------|
-| =work=    | =work-host=                                  | Sources =zshrc-work.sh=; loads private =~/.config/work/my-work.el=. |
-| =home=    | =home-mac= / =home-mac-2= | macOS, Homebrew, Guile paths.      |
-| =desktop= | =desktop-host=                                   | CachyOS / Hyprland / Guix — the bulk of this repo. |
+* Rules
+This repo is public.
+- No secrets or personal identifiers in tracked files. Secrets live in
+  Proton Pass; tracked files hold only =pass://Vault/Item/field=
+  references.
+- Machine-specific settings go in untracked files:
+  - =~/.zshrc.local=, sourced at the end of =.zshrc=
+  - =~/.config/doom/local.el=, scaffolded by =M-x my/write-local-template=
+  - =DOTFILES_LOCATION= (e.g. =home=, =work=) in =~/.zshrc.local= tells
+    Doom which machine it's on until =local.el= sets =my-location=
 
-** How per-machine config works
-1. *Declarative values* — paths, mail address, GPG key, opt-in features live
-   in =~/.config/doom/local.el= (gitignored). Run =M-x my/write-local-template=
-   to scaffold it. See the [[file:.config/doom/config.el][doom config]] for the variable schema.
-2. *Private code* — work-sensitive elisp lives outside the repo in
-   =~/.config/<location>/my-<location>.el= (also gitignored) and is loaded
-   automatically when present, keyed off =my-location=.
-3. *Shell* — =zshrc.org= tangles =source zshrc-work.sh= only on =work-host= and
-   =source zshrc-home.sh= only on the home Mac. The =zshrc-*.sh= build outputs
-   are gitignored.
-
-=my-location= is taken from =local.el= when set, otherwise auto-detected from
-the hostname (table above). Nothing work-specific is ever committed here.
-
-* Requirements
-** MAC
-*** GNU Stow
+* Install
 #+begin_src bash
-brew install stow
+brew install stow starship   # plus the Proton Pass CLI (pass-cli)
+git clone git@github.com:paulmeier/dotfiles.git ~/dotfiles
+cd ~/dotfiles && stow .
+pass-cli login
 #+end_src
 
-*** YAS-SNIPPETS
-- [[https://github.com/doomemacs/snippets][Github Repo]]
+Doom snippets: [[https://github.com/doomemacs/snippets]]
 
-* Emacs profiles
-Two Emacs configurations live side by side; Emacs 29+'s =--init-directory=
-switches between them, so nothing is shared or clobbered.
+* Secrets (Proton Pass)
+Proton Pass is the source of truth. =~/.config/zsh/secrets.env= (tracked)
+lists which items become environment variables, as =pass://= references.
+=pp-sync= fetches them and writes a managed block of exports into
+=~/.zshrc.local= (untracked, mode 600), so every shell has them. Run it
+again after changing a secret.
 
-| Profile | Config dir        | Launch                              | Notes |
-|---------+-------------------+-------------------------------------+-------|
-| Doom    | =~/.config/doom=  | =emacs= (default, =DOOMDIR= is set) | Daily driver. Doom itself is installed in =~/.config/emacs=. |
-| EWS     | =~/.config/ews=   | =ews= (GUI) / =ews-nw= (terminal)   | [[https://github.com/pprevos/emacs-writing-studio][Emacs Writing Studio]] by Peter Prevos, vanilla keybindings, Org/Denote/citar writing setup. |
+| Command              | Effect                                          |
+|----------------------+-------------------------------------------------|
+| =pp-sync=            | Refresh the secrets block in =~/.zshrc.local=   |
+| =pp <Item> [field]=  | Print one field (default =password=)            |
+| =ppc <Item> [field]= | Copy one field; clipboard clears after 45s      |
 
-** Emacs Writing Studio
-- Only my own files are tracked: =user.el= (personal additions: theme, font,
-  extra packages, bindings) and =local.el= (paths, dictionary, ELPA mirror).
-  Run =.config/ews/bootstrap.sh= on a new machine to fetch upstream
-  =init.el= / =ews.el= and apply the three small hooks the profile needs
-  (load local.el, guard MPRIS on macOS, load user.el). Re-run it with a git
-  ref to pull a newer upstream.
-- Packages install from MELPA on first launch into =.config/ews/elpa=
-  (gitignored). First start takes a minute.
-- Keybindings hang off =C-c w= (=which-key= shows the tree). =C-c w o= toggles
-  distraction-free writing, =C-c w d n= makes a Denote note, =C-c w b= is
-  bibliography, =C-c w t t= toggles the Modus theme.
-- The book source is in =documents/= of the upstream repo, cloned to
-  =~/Projects/emacs-writing-studio=.
-- Spelling needs a hunspell dictionary: on macOS drop =en_US.dic= / =en_US.aff=
-  (from [[https://github.com/LibreOffice/dictionaries/tree/master/en][LibreOffice dictionaries]]) into =~/Library/Spelling=; on Linux install
-  =hunspell-en_us=. macOS also needs =coreutils= (=gls=) for EWS's dired switches.
-- If =elpa.gnu.org= is unreachable (ProtonVPN exits reset it), uncomment the
-  ELPA mirror block at the bottom of =local.el=.
-- Optional external tools EWS looks for on startup: ghostscript or mupdf,
-  poppler (=pdftotext=), LibreOffice, djvulibre, mpv/vlc, imagemagick,
-  dvipng, a LaTeX distribution, hunspell, git.
+SSH keys come from the Proton Pass SSH agent
+(=~/.ssh/proton-pass-ssh-agent.sock=).
 
-* Link the configuration file
-#+begin_src bash
-stow .
-#+end_src
-
-* ENV
-** Denote Locations
-#+begin_src sh
-export DENOTE_DIRED_DIRECTORIES=""
-export DENOTE_DIRECTORY=""
-export DENOTE_JOURNAL_EXTRAS_DIRECTORY=""
-#+end_src
-
-** Org Locations
-#+begin_src sh
-export ORG_WORKLIST_LOCATION=""
-export ORG_DIRECTORY=""
-export ORG_DOWNLOAD_IMAGE_DIR=""
-export ORG_AGENDA_FILES=""
-#+end_src
-
-** Consult Locations
-#+begin_src sh
-export CONSULT_NOTES_FILE_DIR_SOURCES=""
-#+end_src
+* Emacs + Proton Pass
+[[https://github.com/paulmeier/proton-pass.el][proton-pass.el]] (my package, loaded via =packages.el=), configured in =config.el= under
+"Secrets (Proton Pass)":
+- an auth-source backend (=proton-pass= in =auth-sources=): map hosts to
+  items in =proton-pass-auth-source-alist=
+- =(proton-pass-get "pass://...")= for use in config code
+- =SPC P P= opens a pass.el-style vault browser (=w= copy, =e= edit,
+  =r= rename, =d= trash, ...)
+- =SPC P= menu: copy, insert/generate/edit/rename/trash items, switch vault
+- sets =SSH_AUTH_SOCK= to the Proton Pass agent so magit uses keys stored
+  in Pass
