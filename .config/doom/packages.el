@@ -34,17 +34,26 @@
 ;; Writing
 (package! olivetti)
 
+;; Key Quiz: practice keybindings as a game (SPC o k)
+(package! key-quiz)
+
 ;; Programming
 (package! load-env-vars)
 
 ;; Editing
 (package! drag-stuff)
 
+;; Templating (jinja2-mode for .j2 / .j2.yml templates; see config.el "Jinja2 templates")
+(package! jinja2-mode)
+
 ;; AI
 (package! copilot-chat
   :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
+(package! mcp-server
+  :recipe (:host github :repo "rhblind/emacs-mcp-server"
+           :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh")))
 
 ;; Misc
 (package! obsidian)

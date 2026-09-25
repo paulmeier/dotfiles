@@ -1,5 +1,29 @@
 #+title: Readme
 
+* Machines
+These dotfiles drive three machines. Per-machine differences are handled in
+two complementary ways, never by editing tracked files:
+
+| Location  | =system-name=                              | Notes                                   |
+|-----------+--------------------------------------------+-----------------------------------------|
+| =work=    | =work-host=                                  | Sources =zshrc-work.sh=; loads private =~/.config/work/my-work.el=. |
+| =home=    | =home-mac= / =home-mac-2= | macOS, Homebrew, Guile paths.      |
+| =desktop= | =desktop-host=                                   | CachyOS / Hyprland / Guix — the bulk of this repo. |
+
+** How per-machine config works
+1. *Declarative values* — paths, mail address, GPG key, opt-in features live
+   in =~/.config/doom/local.el= (gitignored). Run =M-x my/write-local-template=
+   to scaffold it. See the [[file:.config/doom/config.el][doom config]] for the variable schema.
+2. *Private code* — work-sensitive elisp lives outside the repo in
+   =~/.config/<location>/my-<location>.el= (also gitignored) and is loaded
+   automatically when present, keyed off =my-location=.
+3. *Shell* — =zshrc.org= tangles =source zshrc-work.sh= only on =work-host= and
+   =source zshrc-home.sh= only on the home Mac. The =zshrc-*.sh= build outputs
+   are gitignored.
+
+=my-location= is taken from =local.el= when set, otherwise auto-detected from
+the hostname (table above). Nothing work-specific is ever committed here.
+
 * Requirements
 ** MAC
 *** GNU Stow
@@ -9,6 +33,38 @@ brew install stow
 
 *** YAS-SNIPPETS
 - [[https://github.com/doomemacs/snippets][Github Repo]]
+
+* Emacs profiles
+Two Emacs configurations live side by side; Emacs 29+'s =--init-directory=
+switches between them, so nothing is shared or clobbered.
+
+| Profile | Config dir        | Launch                              | Notes |
+|---------+-------------------+-------------------------------------+-------|
+| Doom    | =~/.config/doom=  | =emacs= (default, =DOOMDIR= is set) | Daily driver. Doom itself is installed in =~/.config/emacs=. |
+| EWS     | =~/.config/ews=   | =ews= (GUI) / =ews-nw= (terminal)   | [[https://github.com/pprevos/emacs-writing-studio][Emacs Writing Studio]] by Peter Prevos, vanilla keybindings, Org/Denote/citar writing setup. |
+
+** Emacs Writing Studio
+- Only my own files are tracked: =user.el= (personal additions: theme, font,
+  extra packages, bindings) and =local.el= (paths, dictionary, ELPA mirror).
+  Run =.config/ews/bootstrap.sh= on a new machine to fetch upstream
+  =init.el= / =ews.el= and apply the three small hooks the profile needs
+  (load local.el, guard MPRIS on macOS, load user.el). Re-run it with a git
+  ref to pull a newer upstream.
+- Packages install from MELPA on first launch into =.config/ews/elpa=
+  (gitignored). First start takes a minute.
+- Keybindings hang off =C-c w= (=which-key= shows the tree). =C-c w o= toggles
+  distraction-free writing, =C-c w d n= makes a Denote note, =C-c w b= is
+  bibliography, =C-c w t t= toggles the Modus theme.
+- The book source is in =documents/= of the upstream repo, cloned to
+  =~/Projects/emacs-writing-studio=.
+- Spelling needs a hunspell dictionary: on macOS drop =en_US.dic= / =en_US.aff=
+  (from [[https://github.com/LibreOffice/dictionaries/tree/master/en][LibreOffice dictionaries]]) into =~/Library/Spelling=; on Linux install
+  =hunspell-en_us=. macOS also needs =coreutils= (=gls=) for EWS's dired switches.
+- If =elpa.gnu.org= is unreachable (ProtonVPN exits reset it), uncomment the
+  ELPA mirror block at the bottom of =local.el=.
+- Optional external tools EWS looks for on startup: ghostscript or mupdf,
+  poppler (=pdftotext=), LibreOffice, djvulibre, mpv/vlc, imagemagick,
+  dvipng, a LaTeX distribution, hunspell, git.
 
 * Link the configuration file
 #+begin_src bash

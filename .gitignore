@@ -61,12 +61,17 @@ flycheck_*.el
 .config/pmacs/auto-save-list
 .config/pmacs/recentf
 
-# Build this, dont version it
-.config/doom/config.el
-
 # Per-machine doom settings (paths, GPG key, opt-in features)
 .config/doom/local.el
 .config/doom/local.el.template
+
+# Emacs Writing Studio profile (.config/ews). Only my own files are tracked;
+# the upstream init.el/ews.el/LICENSE are fetched by bootstrap.sh and the
+# rest is runtime state.
+.config/ews/*
+!.config/ews/user.el
+!.config/ews/local.el
+!.config/ews/bootstrap.sh
 
 # Zsh - Dont include work and require it to be built
 zshrc-work.sh
@@ -75,6 +80,41 @@ zshrc-home.sh
 zshrc-home.org
 .zshrc
 
-# Home for now
+# Per-machine private code, loaded by doom config.el's conditional machine loading
+# from ~/.config/<location>/my-<location>.el. Never commit these to the public repo.
 my-mac.el
 my-mac.org
+my-work.el
+my-work.org
+my-home.el
+my-home.org
+my-desktop.el
+my-desktop.org
+.config/work/
+.config/home/
+.config/desktop/
+
+# Desktop/system config: generated state & reinstallable bloat (dirs are tracked partially)
+.config/fish/fish_variables
+.config/micro/syntax/
+.config/noctalia/plugins/
+.config/gtk-4.0/thumbnail.png
+*.bak
+
+# Literate config: tangled outputs. Source of truth is the adjacent .org file;
+# regenerate with `org-babel-tangle` (these are gitignored).
+.config/hypr/hyprland.lua
+.config/hypr/xdph.conf
+.config/hypr/config/*.lua
+.config/hypr/hypridle.conf
+.config/kitty/kitty.conf
+.config/alacritty/alacritty.toml
+.config/fish/config.fish
+.config/btop/btop.conf
+.config/micro/settings.json
+.config/qt6ct/qt6ct.conf
+.config/xsettingsd/xsettingsd.conf
+.config/gtk-3.0/settings.ini
+.config/uwsm/env
+.config/mimeapps.list
+.config/git/ignore
