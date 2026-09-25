@@ -1,11 +1,6 @@
-# ~/.zshrc -- tracked in ~/dotfiles (PUBLIC repo).
-#
-# Rules for this file:
-#   - No secrets, no personal identifiers, no hostnames, no hardcoded $HOME.
-#   - Secrets live in Proton Pass; see "Secrets" below and ~/.config/zsh/secrets.env.
-#   - Machine-specific or tool-generated stuff goes in ~/.zshrc.local (untracked).
-#   - Installers love appending here. If `git diff` shows a new block, move it
-#     to ~/.zshrc.local instead of committing it.
+# Public repo: no secrets or personal identifiers here. Secrets come from
+# Proton Pass via `pp-sync`. Installers that append to this file belong in
+# ~/.zshrc.local instead.
 
 # --- oh-my-zsh ---------------------------------------------------------------
 if [ -d "$HOME/.oh-my-zsh" ]; then
@@ -34,14 +29,7 @@ export PATH="$HOME/.config/emacs/bin:$PATH"
 export DOOMDIR="$HOME/.config/doom"
 
 # Emacs Writing Studio profile
-ews() {
-  if [ "$(uname)" = "Darwin" ] && [ -d /Applications/Emacs.app ]; then
-    open -na Emacs --args --init-directory "$HOME/.config/ews" "$@"
-  else
-    emacs --init-directory "$HOME/.config/ews" "$@" &
-    disown
-  fi
-}
+ews() { open -na Emacs --args --init-directory "$HOME/.config/ews" "$@"; }
 ews-nw() { emacs -nw --init-directory "$HOME/.config/ews" "$@"; }
 
 # --- Languages & tools -------------------------------------------------------
@@ -88,11 +76,9 @@ alias k="kubectl"
 [ -S "$HOME/.ssh/proton-pass-ssh-agent.sock" ] && \
   export SSH_AUTH_SOCK="$HOME/.ssh/proton-pass-ssh-agent.sock"
 
-# Secrets. Proton Pass is the source of truth; ~/.config/zsh/secrets.env
-# (tracked) lists which items to export, as `pass://Vault/Item/field`
-# references. `pp-sync` fetches them once and writes a managed block of
-# exports into ~/.zshrc.local (untracked, mode 600), which every shell
-# sources below -- no per-command step. Re-run after changing a secret.
+# Secrets. ~/.config/zsh/secrets.env lists `pass://Vault/Item/field`
+# references; `pp-sync` fetches them into ~/.zshrc.local (mode 600), which
+# every shell sources. Re-run it after changing a secret.
 #
 #   pp-sync            refresh the secrets block in ~/.zshrc.local
 #   pp <Item> [field]  print one field (default: password)
@@ -143,7 +129,7 @@ ppc() {
   ( sleep 45; [ "$(pbpaste)" = "${v%$'\n'}" ] && printf '' | pbcopy ) &!
 }
 
-# --- Machine-local overrides (untracked) -------------------------------------
+# --- Secrets and installer blocks (untracked) ---------------------------------
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
 # --- Prompt (keep last) ------------------------------------------------------

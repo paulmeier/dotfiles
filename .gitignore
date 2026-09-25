@@ -4,7 +4,7 @@
 /*
 !/.gitignore
 !/.stow-local-ignore
-!/README.org
+!/README.md
 !/.zshrc
 !/.config/
 /.config/*
@@ -12,9 +12,8 @@
 !/.config/zsh/
 !/.config/starship.toml
 
-# Doom: per-machine settings (paths, mail, GPG key, location)
+# Doom: paths to my data
 /.config/doom/local.el
-/.config/doom/local.el.template
 
 # Never, anywhere
 .DS_Store

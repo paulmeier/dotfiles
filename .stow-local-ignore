@@ -1,13 +1,4 @@
-LICENSE
 \.git
-^/.*\.org
-misc
-README.md
-.gitignore
-.DS_Store
-.vscode
-.emacs-configs/doom-emacs
-.emacs-configs/crafted-emacs
-.emacs-profile
-.emacs-profiles.el
-.authinfo.gpg.backup
+^/\.gitignore
+^/README\.md
+\.DS_Store

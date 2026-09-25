@@ -1,14 +1,6 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
 
-;; Load per-machine settings early so `my/local-features' (defined in
-;; local.el) can gate optional packages below. local.el is gitignored;
-;; if it's missing we just continue without any opt-in features.
-(let ((local-file (expand-file-name "local.el" (or (bound-and-true-p doom-user-dir)
-                                                   user-emacs-directory))))
-  (when (file-exists-p local-file)
-    (load local-file nil 'nomessage)))
-
 ;; Org
 (package! ob-mermaid)
 
@@ -34,7 +26,7 @@
 ;; Writing
 (package! olivetti)
 
-;; Key Quiz: practice keybindings as a game (SPC o k)
+;; Key Quiz
 (package! key-quiz)
 
 ;; Programming
@@ -43,7 +35,7 @@
 ;; Editing
 (package! drag-stuff)
 
-;; Templating (jinja2-mode for .j2 / .j2.yml templates; see config.el "Jinja2 templates")
+;; Templating
 (package! jinja2-mode)
 
 ;; AI
@@ -58,18 +50,8 @@
 ;; Misc
 (package! obsidian)
 
-;; Secrets -- my own package. Use the local checkout when present so edits
-;; are picked up (`doom sync' to rebuild); otherwise pull from GitHub.
+;; Secrets. Uses the local checkout when present, else GitHub.
 (package! proton-pass
   :recipe (if (file-directory-p "~/Projects/proton-pass.el")
               '(:local-repo "~/Projects/proton-pass.el" :files ("proton-pass.el"))
             '(:host github :repo "paulmeier/proton-pass.el" :files ("proton-pass.el"))))
-
-;;; Opt-in features --------------------------------------------------------
-;; Add the corresponding symbols to `my/local-features' in local.el to enable.
-
-(when (member 'gitlab (bound-and-true-p my/local-features))
-  (package! lab))
-
-(when (member 'postman (bound-and-true-p my/local-features))
-  (package! impostman))
