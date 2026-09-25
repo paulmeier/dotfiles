@@ -61,9 +61,6 @@ flycheck_*.el
 .config/pmacs/auto-save-list
 .config/pmacs/recentf
 
-# Build this, dont version it
-.config/doom/config.el
-
 # Per-machine doom settings (paths, GPG key, opt-in features)
 .config/doom/local.el
 .config/doom/local.el.template
@@ -83,7 +80,7 @@ zshrc-home.sh
 zshrc-home.org
 .zshrc
 
-# Per-machine private code, loaded by config.org's conditional machine loading
+# Per-machine private code, loaded by doom config.el's conditional machine loading
 # from ~/.config/<location>/my-<location>.el. Never commit these to the public repo.
 my-mac.el
 my-mac.org
@@ -105,7 +102,7 @@ my-desktop.org
 *.bak
 
 # Literate config: tangled outputs. Source of truth is the adjacent .org file;
-# regenerate with `org-babel-tangle` (these are gitignored like doom's config.el).
+# regenerate with `org-babel-tangle` (these are gitignored).
 .config/hypr/hyprland.lua
 .config/hypr/xdph.conf
 .config/hypr/config/*.lua

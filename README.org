@@ -13,7 +13,7 @@ two complementary ways, never by editing tracked files:
 ** How per-machine config works
 1. *Declarative values* — paths, mail address, GPG key, opt-in features live
    in =~/.config/doom/local.el= (gitignored). Run =M-x my/write-local-template=
-   to scaffold it. See the [[file:.config/doom/config.org][doom config]] for the variable schema.
+   to scaffold it. See the [[file:.config/doom/config.el][doom config]] for the variable schema.
 2. *Private code* — work-sensitive elisp lives outside the repo in
    =~/.config/<location>/my-<location>.el= (also gitignored) and is loaded
    automatically when present, keyed off =my-location=.
