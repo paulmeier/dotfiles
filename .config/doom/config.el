@@ -28,31 +28,10 @@
 (load (expand-file-name "local.el" doom-user-dir) t t)
 
 ;;; Identity
-;; Email and GPG key id come from Proton Pass: `pp-sync' exports them (see
-;; ~/.config/zsh/secrets.env), and GUI Emacs picks them up via `doom env'.
+;; Email and GPG key id come from the macOS Keychain: `ks-sync' exports them
+;; (see ~/.config/zsh/secrets.env), and GUI Emacs picks them up via `doom env'.
 (setq user-full-name "Paul Meier"
       user-mail-address (or (getenv "USER_MAIL_ADDRESS") user-mail-address))
-
-;;; Email
-;; notmuch over Proton Mail Bridge (IMAP 127.0.0.1:1143, SMTP :1025). mbsync,
-;; msmtp and the ~/.local/bin/mailsync script are configured outside this repo.
-(when (executable-find "notmuch")
-  (after! notmuch
-    ;; Doom defaults to lieer (Gmail only); use the same script as the
-    ;; launchd auto-sync.
-    (setq +notmuch-sync-backend (expand-file-name "~/.local/bin/mailsync")
-          +notmuch-home-function (lambda () (notmuch-search "tag:inbox")))
-    (setq sendmail-program (executable-find "msmtp")
-          message-sendmail-f-is-evil t
-          message-sendmail-extra-arguments '("--read-envelope-from"))
-    (setq notmuch-saved-searches
-          '((:name "inbox"   :query "tag:inbox not tag:trash" :key "i")
-            (:name "unread"  :query "tag:unread"              :key "u")
-            (:name "flagged" :query "tag:flagged"             :key "f")
-            (:name "sent"    :query "tag:sent"                :key "s")
-            (:name "drafts"  :query "tag:draft"               :key "d")
-            (:name "all"     :query "*"                       :key "a"))))
-  (after! auth-source (auth-source-pass-enable)))
 
 ;;; Custom modules
 (my/add-to-load-path (expand-file-name "modules" doom-user-dir))
@@ -130,63 +109,6 @@
         epa-file-select-keys 'silent))
 
 (epa-file-enable)
-
-;;; Secrets (Proton Pass)
-;; https://github.com/paulmeier/proton-pass.el. Nothing is fetched at startup.
-;; Only map items whose titles are unique; a missing item errors instead of
-;; falling back to ~/.authinfo.gpg.
-(use-package! proton-pass
-  :demand t
-  :config
-  (setq proton-pass-vault "Personal"
-        proton-pass-auth-source-alist
-        '(;; (HOST USER URI) -- USER nil matches any user.
-          ;; ("api.anthropic.com" "apikey" "pass://Personal/Anthropic API/password")
-          ))
-  (proton-pass-auth-source-enable)
-  (proton-pass-use-ssh-agent))
-
-(map! :leader
-      (:prefix ("k" . "proton pass")
-       :desc "Browse vault"          "b" #'proton-pass
-       :desc "View item"             "v" #'proton-pass-view
-       :desc "Copy password"         "p" #'proton-pass-copy-password
-       :desc "Copy username"         "u" #'proton-pass-copy-username
-       :desc "Copy field"            "f" #'proton-pass-copy-field
-       :desc "Copy TOTP code"        "t" #'proton-pass-totp
-       :desc "Open URL"              "o" #'proton-pass-url
-       :desc "Insert item"           "i" #'proton-pass-insert
-       :desc "Create with generated" "c" #'proton-pass-generate
-       :desc "Edit field"            "e" #'proton-pass-edit
-       :desc "Rename item"           "r" #'proton-pass-rename
-       :desc "Trash item"            "d" #'proton-pass-remove
-       :desc "Switch vault"          "s" #'proton-pass-switch-vault
-       :desc "Write password here"   "w" #'proton-pass-insert-generated-password
-       :desc "Clear cache"           "x" #'proton-pass-clear-cache
-       :desc "Account info"          "a" #'proton-pass-info))
-
-;; Same letters as the leader menu. Bound per evil state rather than as an
-;; overriding map, which would inherit special-mode's SPC and shadow the leader.
-(map! :after proton-pass
-      :map (proton-pass-mode-map proton-pass-view-mode-map)
-      :n "p" #'proton-pass-copy-password
-      :n "u" #'proton-pass-copy-username
-      :n "f" #'proton-pass-copy-field
-      :n "t" #'proton-pass-totp
-      :n "o" #'proton-pass-url
-      :n "i" #'proton-pass-insert
-      :n "c" #'proton-pass-generate
-      :n "e" #'proton-pass-edit
-      :n "r" #'proton-pass-rename
-      :n "d" #'proton-pass-remove
-      :n "s" #'proton-pass-switch-vault
-      :n "q" #'quit-window
-      :map proton-pass-mode-map
-      :n "RET" #'proton-pass-view
-      :n "v"   #'proton-pass-view
-      :n "gr"  #'proton-pass-refresh
-      :map proton-pass-view-mode-map
-      :n "gr"  #'proton-pass-view-refresh)
 
 ;;; Tools
 
@@ -401,8 +323,8 @@
        :desc "Previous prompt history"         "h" #'copilot-chat-prompt-history-previous
        :desc "Next prompt history"             "n" #'copilot-chat-prompt-history-next))
 
-;; The Anthropic key comes from auth-source (Proton Pass if mapped above,
-;; else ~/.authinfo.gpg). LM Studio only works while its local server runs.
+;; The Anthropic key comes from auth-source (~/.authinfo.gpg). LM Studio
+;; only works while its local server runs.
 (use-package! gptel
   :defer t
   :config

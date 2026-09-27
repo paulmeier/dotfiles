@@ -2,7 +2,7 @@
 
 ## Setting up a new machine
 
-1. Install the prerequisites, plus the Proton Pass CLI (`pass-cli`) on `PATH`:
+1. Install the prerequisites:
 
    ```sh
    brew install git stow starship
@@ -25,15 +25,17 @@
    cd ~/dotfiles && stow .
    ```
 
-4. Load secrets from Proton Pass into `~/.zshrc.local`:
+4. Store each secret listed in `.config/zsh/secrets.env` in the login
+   Keychain (the login Keychain doesn't sync through iCloud), then load them
+   into `~/.zshrc.local`:
 
    ```sh
-   pass-cli login
    exec zsh
-   pp-sync
+   ks-add TAILSCALE_API_KEY   # repeat for each name in secrets.env
+   ks-sync
    ```
 
-5. Install Doom Emacs (after `pp-sync`, so Doom's saved environment includes
+5. Install Doom Emacs (after `ks-sync`, so Doom's saved environment includes
    your email and GPG key):
 
    ```sh
@@ -41,7 +43,7 @@
    ~/.config/emacs/bin/doom install
    ```
 
-After changing a secret later, run `pp-sync` and then `doom env`.
+After changing a secret later, run `ks-sync` and then `doom env`.
 
 ## Emacs profiles
 
