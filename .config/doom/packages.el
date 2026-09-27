@@ -65,9 +65,3 @@
 
 ;; Misc
 (package! obsidian)
-
-;; Secrets. Uses the local checkout when present, else GitHub.
-(package! proton-pass
-  :recipe (if (file-directory-p "~/Projects/proton-pass.el")
-              '(:local-repo "~/Projects/proton-pass.el" :files ("proton-pass.el"))
-            '(:host github :repo "paulmeier/proton-pass.el" :files ("proton-pass.el"))))
