@@ -33,27 +33,6 @@
 (setq user-full-name "Paul Meier"
       user-mail-address (or (getenv "USER_MAIL_ADDRESS") user-mail-address))
 
-;;; Email
-;; notmuch over Proton Mail Bridge (IMAP 127.0.0.1:1143, SMTP :1025). mbsync,
-;; msmtp and the ~/.local/bin/mailsync script are configured outside this repo.
-(when (executable-find "notmuch")
-  (after! notmuch
-    ;; Doom defaults to lieer (Gmail only); use the same script as the
-    ;; launchd auto-sync.
-    (setq +notmuch-sync-backend (expand-file-name "~/.local/bin/mailsync")
-          +notmuch-home-function (lambda () (notmuch-search "tag:inbox")))
-    (setq sendmail-program (executable-find "msmtp")
-          message-sendmail-f-is-evil t
-          message-sendmail-extra-arguments '("--read-envelope-from"))
-    (setq notmuch-saved-searches
-          '((:name "inbox"   :query "tag:inbox not tag:trash" :key "i")
-            (:name "unread"  :query "tag:unread"              :key "u")
-            (:name "flagged" :query "tag:flagged"             :key "f")
-            (:name "sent"    :query "tag:sent"                :key "s")
-            (:name "drafts"  :query "tag:draft"               :key "d")
-            (:name "all"     :query "*"                       :key "a"))))
-  (after! auth-source (auth-source-pass-enable)))
-
 ;;; Custom modules
 (my/add-to-load-path (expand-file-name "modules" doom-user-dir))
 (require 'isbn-to-bibtex)
