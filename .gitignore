@@ -1,4 +1,4 @@
-# Allowlist: this PUBLIC repo tracks only Doom, zsh and Starship config.
+# Allowlist: this PUBLIC repo tracks only Doom, EWS, zsh and Starship config.
 # Everything else is ignored by default, so nothing lands here by accident.
 # To track something new, add a `!` rule below and make sure it's secret-free.
 /*
@@ -9,11 +9,18 @@
 !/.config/
 /.config/*
 !/.config/doom/
+!/.config/ews/
 !/.config/zsh/
 !/.config/starship.toml
 
 # Doom: paths to my data
 /.config/doom/local.el
+
+# EWS: only my own files; upstream (bootstrap.sh) and runtime state are ignored
+/.config/ews/*
+!/.config/ews/early-init.el
+!/.config/ews/user.el
+!/.config/ews/bootstrap.sh
 
 # Never, anywhere
 .DS_Store
