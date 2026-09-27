@@ -1,4 +1,5 @@
-# Allowlist: this PUBLIC repo tracks only Doom, EWS, zsh and Starship config.
+# Allowlist: this PUBLIC repo tracks only Doom, EWS, zsh and Starship config,
+# plus a few scripts in ~/.local/bin.
 # Everything else is ignored by default, so nothing lands here by accident.
 # To track something new, add a `!` rule below and make sure it's secret-free.
 /*
@@ -32,3 +33,10 @@
 .env
 .env.*
 *.local
+
+# ~/.local/bin: only named scripts (after `*.local`, which would match the dir)
+!/.local/
+/.local/*
+!/.local/bin/
+/.local/bin/*
+!/.local/bin/syncthing-sync-folders

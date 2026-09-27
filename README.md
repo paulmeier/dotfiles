@@ -65,3 +65,19 @@ upgrade):
 
 Packages install into `~/.config/ews/elpa` on first launch. macOS needs
 `hunspell` with `en_US` in `~/Library/Spelling`, and `coreutils` for `gls`.
+
+## Syncthing
+
+Each directory directly under `~/Sync` is its own Syncthing folder, with the
+directory name as the folder ID so matching names line up across devices.
+`syncthing-sync-folders` registers any new ones; `install` sets up a launch
+agent that runs it whenever `~/Sync` changes:
+
+```sh
+brew install syncthing jq
+brew services start syncthing
+syncthing-sync-folders install
+```
+
+Folders still have to be shared with other devices in the web UI
+(http://127.0.0.1:8384).

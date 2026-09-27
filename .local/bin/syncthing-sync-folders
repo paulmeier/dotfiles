@@ -1,0 +1,64 @@
+#!/bin/zsh
+# Register every directory directly under ~/Sync as its own Syncthing folder.
+# The folder ID is the directory name, so the same name on another device
+# lines up with the same folder. Existing folders are left alone.
+#
+#   syncthing-sync-folders           add any new ~/Sync/* folders
+#   syncthing-sync-folders install   run automatically via a launch agent (macOS)
+set -euo pipefail
+
+SYNC_ROOT="$HOME/Sync"
+LABEL=local.syncthing-folders
+
+if [[ ${1:-} == install ]]; then
+  mkdir -p "$SYNC_ROOT"
+  plist="$HOME/Library/LaunchAgents/$LABEL.plist"
+  # The interval is a fallback for when Syncthing wasn't up yet as ~/Sync changed.
+  cat > "$plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array><string>$HOME/.local/bin/syncthing-sync-folders</string></array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>WatchPaths</key>
+  <array><string>$SYNC_ROOT</string></array>
+  <key>StartInterval</key><integer>600</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardErrorPath</key><string>$HOME/.syncthing-folders.err</string>
+  <key>StandardOutPath</key><string>$HOME/.syncthing-folders.out</string>
+</dict>
+</plist>
+PLIST
+  launchctl bootout "gui/$UID/$LABEL" 2>/dev/null || true
+  launchctl bootstrap "gui/$UID" "$plist"
+  print "installed $plist"
+  exit
+fi
+
+KEY=$(syncthing cli config gui apikey get)
+API="http://$(syncthing cli config gui raw-address get)/rest"
+
+st() { curl -fsS -H "X-API-Key: $KEY" "$@"; }
+
+existing=$(st "$API/config/folders" | jq -r '.[].path')
+defaults=$(st "$API/config/defaults/folder")
+
+for dir in "$SYNC_ROOT"/*(N/); do
+  name=${dir:t}
+  if print -r -- "$existing" | grep -qxF -e "$dir" -e "~/Sync/$name"; then
+    continue
+  fi
+  id=$(print -r -- "$name" | tr -c 'A-Za-z0-9._-\n' '-')
+  print -r -- "$defaults" \
+    | jq --arg id "$id" --arg label "$name" --arg path "$dir" \
+        '.id = $id | .label = $label | .path = $path' \
+    | st -X PUT -H 'Content-Type: application/json' -d @- "$API/config/folders/$id"
+  print "added $name ($id)"
+done
