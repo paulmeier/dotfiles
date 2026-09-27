@@ -56,7 +56,7 @@ two never share packages or state:
 | Doom    | `emacs`                             | evil, `SPC` leader     |
 | EWS     | `ews` (GUI) / `ews-nw` (terminal)   | stock Emacs, `C-c w`   |
 
-Only my files are tracked: `early-init.el` (hooks, dictionary, GitHub ELPA mirror since ProtonVPN gets blocked by elpa.gnu.org)
+Only my files are tracked: `early-init.el` (hooks, dictionary)
 and `user.el` (paths, theme, font, extras). Data paths come from Doom's
 gitignored `local.el`. After `stow .`, fetch upstream once (pass a git ref to
 upgrade):
