@@ -42,3 +42,26 @@
    ```
 
 After changing a secret later, run `pp-sync` and then `doom env`.
+
+## Emacs profiles
+
+Doom is the default `emacs`. [Emacs Writing Studio](https://github.com/pprevos/emacs-writing-studio)
+runs as a separate profile in `~/.config/ews` via `--init-directory`, so the
+two never share packages or state:
+
+| Profile | Launch                              | Keys                   |
+|---------|-------------------------------------|------------------------|
+| Doom    | `emacs`                             | evil, `SPC` leader     |
+| EWS     | `ews` (GUI) / `ews-nw` (terminal)   | stock Emacs, `C-c w`   |
+
+Only my files are tracked: `early-init.el` (hooks, dictionary, GitHub ELPA mirror since ProtonVPN gets blocked by elpa.gnu.org)
+and `user.el` (paths, theme, font, extras). Data paths come from Doom's
+gitignored `local.el`. After `stow .`, fetch upstream once (pass a git ref to
+upgrade):
+
+```sh
+~/.config/ews/bootstrap.sh
+```
+
+Packages install into `~/.config/ews/elpa` on first launch. macOS needs
+`hunspell` with `en_US` in `~/Library/Spelling`, and `coreutils` for `gls`.
