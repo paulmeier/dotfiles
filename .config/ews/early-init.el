@@ -21,12 +21,6 @@
   (provide 'emms-mpris)
   (defun emms-mpris-enable () nil))
 
-;; ProtonVPN exits get reset by elpa.gnu.org, so install GNU and NonGNU
-;; packages from a GitHub mirror.  (init.el adds MELPA itself.)
-(setq package-archives
-      '(("gnu"    . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/gnu/")
-        ("nongnu" . "https://raw.githubusercontent.com/d12frosted/elpa-mirror/master/nongnu/")))
-
 (add-hook 'after-init-hook
           (lambda ()
             (load (expand-file-name "user.el" user-emacs-directory) t t)))
