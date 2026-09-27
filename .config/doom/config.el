@@ -24,6 +24,7 @@
 (defvar my/references-bib (expand-file-name "references/references.bib" my/notes-directory))
 (defvar my/references-library (expand-file-name "references" my/notes-directory))
 (defvar my/elfeed-org-file (expand-file-name "elfeed.org" my/org-directory))
+(defvar my/extra-notes-directories nil)
 
 (load (expand-file-name "local.el" doom-user-dir) t t)
 
@@ -40,6 +41,7 @@
 (require 'book-note)
 (require 'lit-mode)
 (require 'comfy-mode)
+(require 'denote-dirs)
 (require 'ews)
 (setq ews-bibtex-directory my/references-library)
 
@@ -184,9 +186,8 @@
 
 (use-package! denote
   :config
-  (setq denote-directory          my/notes-directory
-        denote-directories        (list my/notes-directory)
-        denote-dired-directories  (list my/notes-directory)
+  (setq denote-directory          (my/denote-directory-value)
+        denote-dired-directories  (ensure-list denote-directory)
         denote-prompts '(subdirectory title keywords template)))
 
 (map! :leader
@@ -206,10 +207,10 @@
 
 ;; Template bodies are files inside the notes directory.
 (defun my/denote-template-from-file (filename)
-  "Return contents of FILENAME (relative to `denote-directory`)."
+  "Return contents of FILENAME (relative to `my/notes-directory`)."
   (with-temp-buffer
     (insert-file-contents
-     (expand-file-name filename denote-directory))
+     (expand-file-name filename my/notes-directory))
     (buffer-string)))
 
 (defun my/denote-template-non-fiction-book ()
@@ -235,7 +236,7 @@
              denote-journal-link-or-create-entry)
   :hook (calendar-mode . denote-journal-calendar-mode)
   :config
-  (setq denote-journal-directory   (expand-file-name "journal" denote-directory)
+  (setq denote-journal-directory   (expand-file-name "journal" my/notes-directory)
         denote-journal-keyword     "journal"
         denote-journal-title-format 'day-date-month-year
         denote-journal-interval    'daily))
@@ -270,7 +271,7 @@
 (use-package! citar-denote
   :after (denote citar)
   :config
-  (setq citar-denote-subdir       "literature"
+  (setq citar-denote-subdir       (expand-file-name "literature" my/notes-directory)
         citar-denote-keyword      "bib"
         citar-denote-file-type    'org
         citar-denote-title-format 'author-year-title

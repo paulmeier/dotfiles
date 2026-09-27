@@ -53,7 +53,7 @@ Each must exist in `denote-templates'."
 
 (defun my/book-note--covers-dir ()
   "Return the absolute path to the covers directory, creating it if needed."
-  (let* ((lit (expand-file-name my/book-note-subdir denote-directory))
+  (let* ((lit (expand-file-name my/book-note-subdir (car (denote-directories))))
          (dir (expand-file-name "covers" lit)))
     (unless (file-directory-p dir)
       (make-directory dir t))
@@ -190,7 +190,7 @@ Prompts for which template to use (see `my/book-note-template-keys')."
          (cover-path (my/book-note--download-cover isbn))
          (template   (my/book-note--prompt-template))
          (lit-dir    (file-name-as-directory
-                      (expand-file-name my/book-note-subdir denote-directory)))
+                      (expand-file-name my/book-note-subdir (car (denote-directories)))))
          (bib-kw     (and (boundp 'citar-denote-keyword) citar-denote-keyword))
          (keywords   (delete-dups
                       (append my/book-note-keywords

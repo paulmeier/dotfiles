@@ -4,8 +4,12 @@
 
 ;;; Paths (shared with Doom via ~/.config/doom/local.el)
 
+(load (expand-file-name "doom/modules/denote-dirs"
+                        (or (getenv "XDG_CONFIG_HOME") "~/.config"))
+      nil t)
 (when (bound-and-true-p my/notes-directory)
-  (setq denote-directory my/notes-directory))
+  (setq denote-directory (my/denote-directory-value)
+        denote-journal-directory (expand-file-name "journal" my/notes-directory)))
 (when (bound-and-true-p my/org-directory)
   (setq org-directory my/org-directory))
 (when (bound-and-true-p my/elfeed-org-file)
