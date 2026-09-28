@@ -308,7 +308,7 @@
 (use-package! copilot-chat)
 
 (map! :leader
-      (:prefix ("l" . "co-chat")
+      (:prefix ("l" . "ai")
        :desc "Chat Prompt"                     "p" #'copilot-chat-prompt
        :desc "Reset"                           "r" #'copilot-chat-reset
        :desc "Chat buffers"                    "d" #'copilot-chat-display
@@ -324,22 +324,25 @@
        :desc "Previous prompt history"         "h" #'copilot-chat-prompt-history-previous
        :desc "Next prompt history"             "n" #'copilot-chat-prompt-history-next))
 
-;; The Anthropic key comes from auth-source (~/.authinfo.gpg). LM Studio
-;; only works while its local server runs.
+;; LM Studio only works while its local server runs.
 (use-package! gptel
   :defer t
   :config
-  (gptel-make-openai "LM Studio"
-    :host "localhost:1234"
-    :protocol "http"
-    :models '("openai/gpt-oss-20b")
-    :stream t)
-  (setq gptel-model 'claude-sonnet-4-20250514
-        gptel-backend (gptel-make-anthropic "Claude"
-                        :stream t
-                        :key (auth-source-pick-first-password
-                              :host "api.anthropic.com"
-                              :user "apikey"))))
+  (setq gptel-model 'openai/gpt-oss-20b
+        gptel-backend (gptel-make-openai "LM Studio"
+                        :host "localhost:1234"
+                        :protocol "http"
+                        :models '(openai/gpt-oss-20b)
+                        :stream t)))
+
+(use-package! claude-code-ide
+  :commands (claude-code-ide-menu claude-code-ide)
+  :init
+  (map! :leader
+        :desc "Claude Code" "l i" #'claude-code-ide-menu)
+  :config
+  (setq claude-code-ide-enable-execute-code nil)
+  (claude-code-ide-emacs-tools-setup))
 
 ;; Exposes this Emacs to MCP clients over a local Unix socket at
 ;; ~/.config/emacs/.local/cache/emacs-mcp-server.sock (clients connect with
