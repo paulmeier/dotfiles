@@ -59,6 +59,8 @@
   :recipe (:host github :repo "chep/copilot-chat.el" :files ("*.el")))
 (package! copilot)
 (package! gptel :recipe (:nonrecursive t))
+(package! claude-code-ide
+  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
 (package! mcp-server
   :recipe (:host github :repo "rhblind/emacs-mcp-server"
            :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh")))
