@@ -341,7 +341,8 @@
   (map! :leader
         :desc "Claude Code" "l i" #'claude-code-ide-menu)
   :config
-  (setq claude-code-ide-enable-execute-code nil)
+  (setq claude-code-ide-enable-execute-code nil
+        claude-code-ide-terminal-backend 'ghostel)
   (claude-code-ide-emacs-tools-setup))
 
 ;; Exposes this Emacs to MCP clients over a local Unix socket at
