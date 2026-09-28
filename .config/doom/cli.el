@@ -1,6 +1,6 @@
 ;;; $DOOMDIR/cli.el -*- lexical-binding: t; -*-
 
-(with-eval-after-load 'doom-cli-env
+(with-eval-after-load 'doom-cli-loaddefs
   (setq doom-env-deny
         (append '("^CLAUDE" "^ANTHROPIC_" "^AI_AGENT$" "^MCP_" "^BAGGAGE$"
                   "^API_TIMEOUT_MS$" "^DISABLE_\\(AUTOUPDATER\\|MICROCOMPACT\\)$"
